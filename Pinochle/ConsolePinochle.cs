@@ -1,21 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Pinochle.Events.Turns;
+using Pinochle.Events.Phases;
 
 namespace Pinochle
 {
     class ConsolePinochle
     {
-        public List<string> Turns;
-        public List<string> PhaseMessages;
+        public List<PlayerTurn> Turns;
+        public List<PhaseCompleted> PhaseMessages;
 
         protected Game Game;
 
         public void Play()
         {
             Game = new Game();
-            Turns = new List<string>();
-            PhaseMessages = new List<string>();
+            Turns = new List<PlayerTurn>();
+            PhaseMessages = new List<PhaseCompleted>();
 
             Game.PhaseCompleted += onPhaseCompleted;
             Game.TurnTaken += onTurnTaken;
@@ -97,31 +99,43 @@ namespace Pinochle
 
         protected void PassCards()
         {
+            Cards.Card[] pass = AskForCards();
+
+            Game.PassCardsToLeader(pass);
+
+            pass = AskForCards();
+
+            Game.PassCardsBack(pass);
+        }
+
+        protected Cards.Card[] AskForCards()
+        {
             Hand hand = Game.GetPlayerHand();
 
             int j = 0;
-            foreach(Cards.PinochleCard card in hand.Cards)
+            foreach (Cards.PinochleCard card in hand.Cards)
             {
-                Console.WriteLine(String.Format("{0}: {1}",j, card.GetName() ));
+                Console.WriteLine(String.Format("{0}: {1}", j, card.GetName()));
                 j++;
             }
             Console.WriteLine(Game.ActivePlayer + " select 4 cards pass to your partner");
             Console.WriteLine(Game.GetPlayerHand());
 
             bool inputValid = false;
-            int[] cardPositions;
+            Cards.Card[] selectedCards;
+
             do
             {
                 string cardsInput = Console.ReadLine();
                 string[] cards = cardsInput.Split(" ");
-                cardPositions = new int[4];
+                selectedCards = new Cards.Card[4];
 
-                if(cards.Length < 4)
+                if (cards.Length < 4)
                 {
                     continue;
                 }
 
-                for(int i = 0; i < 4; i++)
+                for (int i = 0; i < 4; i++)
                 {
                     try
                     {
@@ -133,8 +147,8 @@ namespace Pinochle
                         }
                         else
                         {
-                            cardPositions[i] = cardIndex;
-                            inputValid = true; 
+                            selectedCards[i] = hand.Cards[i];
+                            inputValid = true;
                         }
                     }
                     catch (Exception e)
@@ -145,28 +159,28 @@ namespace Pinochle
 
             } while (!inputValid);
 
-            Console.WriteLine(cardPositions);
+            return selectedCards;
         }
 
         protected void Draw()
         {
             Console.Clear();
 
-            foreach(string message in PhaseMessages)
+            foreach(PhaseCompleted phase in PhaseMessages)
             {
-                Console.WriteLine(message);
+                Console.WriteLine(phase);
             }
         }
 
-        public void onPhaseCompleted(string message)
+        public void onPhaseCompleted(PhaseCompleted phaseCompleted)
         {
-            PhaseMessages.Add(message);
-            Console.WriteLine(message);
+            PhaseMessages.Add(phaseCompleted);
+            Console.WriteLine(phaseCompleted);
         }
-        public void onTurnTaken(string message)
+        public void onTurnTaken(PlayerTurn playerTurn)
         {
-            Turns.Add(message);
-            Console.WriteLine(message);
+            Turns.Add(playerTurn);
+            Console.WriteLine(playerTurn);
         }
     }
 }

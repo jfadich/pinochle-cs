@@ -83,7 +83,7 @@ namespace Pinochle.Cards
         public string GetShortName()
         {
             string suit = "";
-            string rankSynbol = "";
+            string rankSymbol;
 
             switch (getSuit())
             {
@@ -106,23 +106,23 @@ namespace Pinochle.Cards
             switch (rank)
             {
                 case Ranks.Ace:
-                    rankSynbol = "A";
+                    rankSymbol = "A";
                     break;
                 case Ranks.King:
-                    rankSynbol = "K";
+                    rankSymbol = "K";
                     break;
                 case Ranks.Queen:
-                    rankSynbol = "Q";
+                    rankSymbol = "Q";
                     break;
                 case Ranks.Jack:
-                    rankSynbol = "J";
+                    rankSymbol = "J";
                     break;
                 default:
-                    rankSynbol = ((int)rank).ToString();
+                    rankSymbol = ((int)rank).ToString();
                     break;
             }
 
-            return String.Format("{0}{1}", rankSynbol, suit);
+            return String.Format("{0}{1}", rankSymbol, suit);
         }
 
         public override string ToString()

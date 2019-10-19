@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using Pinochle.Cards;
+using Pinochle.Events.Phases;
+using Pinochle.Events.Turns;
 
 namespace Pinochle
 {
     class Game
     {
-        public event Action<string> TurnTaken;
-        public event Action<string> PhaseCompleted;
+        public event Action<PlayerTurn> TurnTaken;
+        public event Action<PhaseCompleted> PhaseCompleted;
         public List<Round> Rounds { get; protected set; }
 
         public Player[] Players;
@@ -33,12 +35,35 @@ namespace Pinochle
         }
 
         public bool IsCurrently(Round.Phases phase) => (CurrentRound.Phase == phase);
-        
+        protected void StartRound()
+        {
+            if (CurrentRound != null)
+            {
+                Rounds.Add(CurrentRound);
+            }
+
+            CurrentRound = new Round();
+
+            CurrentRound.Deal(ActivePlayer);
+
+            TurnTaken?.Invoke(new DealtHands(ActivePlayer));
+
+            PhaseCompleted?.Invoke(new DealingCompleted(ActivePlayer));
+
+            SetNextPlayer();
+
+            CurrentRound.Auction.Open(ActivePlayer);
+
+            TurnTaken?.Invoke(new AuctionOpened(ActivePlayer, CurrentRound.Auction.CurrentBid));
+
+            SetNextPlayer();
+        }
+
         public void PlaceBid(int bid)
         {
             CurrentRound.Auction.PlaceBid(ActivePlayer, bid);
 
-            TurnTaken?.Invoke(String.Format("{0} Bid {1}", ActivePlayer, bid));
+            TurnTaken?.Invoke(new BidPlaced(ActivePlayer, CurrentRound.Auction.CurrentBid));
 
             do
             {
@@ -50,11 +75,11 @@ namespace Pinochle
         {
             CurrentRound.Auction.Pass(ActivePlayer);
 
-            TurnTaken?.Invoke(String.Format("{0} passed", ActivePlayer));
+            TurnTaken?.Invoke(new BidPassed(ActivePlayer));
 
             if ( ! CurrentRound.Auction.IsOpen)
             {
-                PhaseCompleted?.Invoke(String.Format("{0} wins the bid with a bid of {1}", Players[CurrentRound.Auction.WinningPosition], CurrentRound.Auction.WinningBid));
+                PhaseCompleted?.Invoke(new BiddingCompleted(Players[CurrentRound.Auction.WinningPosition], CurrentRound.Auction.WinningBid));
 
                 CurrentRound.AdvancePhase();
             }
@@ -65,44 +90,38 @@ namespace Pinochle
             } while (CurrentRound.Auction.PlayerPassed(ActivePlayer));
         }
 
-        public void CallTrump(Card.Suits Trump)
+        public void CallTrump(PinochleCard.Suits Trump)
         {
             CurrentRound.CallTrump(ActivePlayer, Trump);
 
-            PhaseCompleted?.Invoke(String.Format("{0} called {1} for trump", ActivePlayer, Trump));
+            TurnTaken?.Invoke(new TrumpCalled(ActivePlayer, Trump));
+
+            PhaseCompleted?.Invoke(new CallingCompleted(ActivePlayer, Trump));
 
             SetNextPlayer(1);
         }
 
-        public void PassCards(Card[] cards)
+        public void PassCardsToLeader(Card[] cards)
         {
+            GetPlayerHand().TakeCards(cards);
 
+            SetNextPlayer(1);
+
+            GetPlayerHand().GiveCards(cards);
+        }
+
+        public void PassCardsBack(Card[] cards)
+        {
+            GetPlayerHand().TakeCards(cards);
+
+            CurrentRound.PlayerHand(Players[GetNexPosition(1)]).GiveCards(cards);
+
+            PhaseCompleted?.Invoke(new PassingCompleted());
         }
 
         public Hand GetPlayerHand()
         {
-            return CurrentRound.Hands[ActivePlayer.Position];
-        }
-
-        protected void StartRound()
-        {
-            if (CurrentRound != null) {
-                Rounds.Add(CurrentRound);
-            }
-
-            CurrentRound = new Round();
-
-            CurrentRound.Deal(ActivePlayer);
-
-            PhaseCompleted?.Invoke(String.Format("{0} Dealt", ActivePlayer));
-
-            SetNextPlayer();
-
-            CurrentRound.Auction.Open(ActivePlayer);
-
-            TurnTaken?.Invoke(String.Format("{0} opened with {1}", ActivePlayer, CurrentRound.Auction.CurrentBid));
-
-            SetNextPlayer();
+            return CurrentRound.PlayerHand(ActivePlayer);
         }
 
         protected Game SetNextPlayer(int sameTeam = 0)

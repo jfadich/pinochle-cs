@@ -17,26 +17,39 @@ namespace Pinochle
             this.Cards = new List<Card>(cards);
         }
 
-        public Card[] TakeCards(int[] cardIndexes)
+        public Card[] TakeCards(Card[] requestedCards)
         {
-            if(cardIndexes.Length > Cards.Count)
+            if(requestedCards.Length > Cards.Count)
             {
                 throw new Exception("Can't take more cards than are in the hand");
             }
 
-            Card[] cards = new Card[cardIndexes.Length];
+            Card[] cards = new Card[requestedCards.Length];
 
-            for(int i = 0; i < cardIndexes.Length; i++)
+            foreach(Card card in requestedCards)
             {
-                cards[i] = Cards[cardIndexes[i]];
+
             }
 
-            for (int i = 0; i < cardIndexes.Length; i++)
+            for(int i = 0; i < requestedCards.Length; i++)
             {
-                Cards.RemoveAt(cardIndexes[i]);
+                Card card = requestedCards[i];
+
+                if ( !Cards.Contains(card))
+                {
+                    throw new Exception(String.Format("Card '%s' is not in the hand"));
+                }
+
+                cards[i] = card;
+                Cards.Remove(card);
             }
 
             return cards;
+        }
+
+        public void GiveCards(Card[] cards)
+        {
+            Cards.AddRange(cards);
         }
 
         public override string ToString()

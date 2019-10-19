@@ -44,6 +44,11 @@ namespace Pinochle
             AdvancePhase();
         }
 
+        public Hand PlayerHand(Player player)
+        {
+            return Hands[player.Position];
+        }
+
         public void CallTrump(Player player, Cards.Card.Suits trump)
         {
             if(Auction.WinningPosition != player.Position)

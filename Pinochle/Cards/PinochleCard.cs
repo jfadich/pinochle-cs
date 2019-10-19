@@ -8,28 +8,23 @@ namespace Pinochle.Cards
     {
         new public enum Ranks : byte
         {
-            Ace = 0b00_00_0001,
-            Nine = 0b00_00_1001,
-            Ten = 0b00_00_1010,
-            Jack = 0b00_00_1011,
-            Queen = 0b00_00_1100,
-            King = 0b00_00_1101,
+            Ace = Card.Ranks.Ace,
+            Nine = Card.Ranks.Nine,
+            Ten = Card.Ranks.Ten,
+            Jack = Card.Ranks.Jack,
+            Queen = Card.Ranks.Queen,
+            King = Card.Ranks.King,
         };
 
-        public PinochleCard(byte value) : base(value)
-        {
+        public PinochleCard(byte value) : base(value) { }
 
-        }
-
-        public PinochleCard(Ranks rank, Suits suit) : base((Card.Ranks)rank, suit)
-        {
-
-        }
+        public PinochleCard(Ranks rank, Suits suit) : base((Card.Ranks)rank, suit) { }
 
         public bool IsLegOfPinochle()
         {
             return this.Equals(new PinochleCard(Ranks.Queen, Suits.Spades)) || this.Equals(new PinochleCard(Ranks.Jack, Suits.Diamonds));
         }
+
         public bool IsCounter()
         {
             Ranks rank = (Ranks)getRank();
@@ -37,6 +32,7 @@ namespace Pinochle.Cards
             return rank == Ranks.Ace || rank == Ranks.Ten || rank == Ranks.King;
         }
 
+        // @todo order this by pinochle rank
         public int CompareTo(PinochleCard other)
         {
             if (value == other.Value)
