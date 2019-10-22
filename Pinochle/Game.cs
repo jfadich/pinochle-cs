@@ -14,7 +14,7 @@ namespace Pinochle
 
         public Player[] Players;
 
-        protected Round CurrentRound;
+        public Round CurrentRound { get; protected set; }
 
         public Player ActivePlayer { get; protected set; }
 
@@ -35,6 +35,10 @@ namespace Pinochle
         }
 
         public bool IsCurrently(Round.Phases phase) => (CurrentRound.Phase == phase);
+
+        public Round.Phases IsCurrently() => (CurrentRound.Phase);
+
+
         protected void StartRound()
         {
             if (CurrentRound != null)
@@ -103,6 +107,10 @@ namespace Pinochle
 
         public void PassCardsToLeader(Card[] cards)
         {
+            Player partner = Players[GetNexPosition(1)];
+
+            TurnTaken?.Invoke(new PassedCards(ActivePlayer, partner));
+
             GetPlayerHand().TakeCards(cards);
 
             SetNextPlayer(1);
@@ -112,11 +120,25 @@ namespace Pinochle
 
         public void PassCardsBack(Card[] cards)
         {
+            Player partner = Players[GetNexPosition(1)];
+
             GetPlayerHand().TakeCards(cards);
 
             CurrentRound.PlayerHand(Players[GetNexPosition(1)]).GiveCards(cards);
 
+            TurnTaken?.Invoke(new PassedCards(ActivePlayer, partner));
+
+            CurrentRound.AdvancePhase();
+
             PhaseCompleted?.Invoke(new PassingCompleted());
+        }
+
+        public void CalculateMeld()
+        {
+            foreach (Player player in Players)
+            {
+                CurrentRound.CalculateMeld(player);
+            }
         }
 
         public Hand GetPlayerHand()

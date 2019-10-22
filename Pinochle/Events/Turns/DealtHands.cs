@@ -6,6 +6,6 @@ namespace Pinochle.Events.Turns
 {
     class DealtHands : PlayerTurn
     {
-        public DealtHands(Player player) : base(player) { }
+        public DealtHands(Player player) : base(player, String.Format("{0} Dealt", player)) { }
     }
 }

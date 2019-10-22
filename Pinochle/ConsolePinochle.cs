@@ -3,31 +3,41 @@ using System.Collections.Generic;
 using System.Text;
 using Pinochle.Events.Turns;
 using Pinochle.Events.Phases;
+using System.Linq;
 
 namespace Pinochle
 {
     class ConsolePinochle
     {
-        public List<PlayerTurn> Turns;
-        public List<PhaseCompleted> PhaseMessages;
+        public Dictionary<Round.Phases, List<PlayerTurn>> Turns;
+        public List<PhaseCompleted> Phases;
 
         protected Game Game;
 
         public void Play()
         {
+            Console.OutputEncoding = Encoding.UTF8;
             Game = new Game();
-            Turns = new List<PlayerTurn>();
-            PhaseMessages = new List<PhaseCompleted>();
+            Turns = new Dictionary<Round.Phases, List<PlayerTurn>>();
+            Phases = new List<PhaseCompleted>();
+            
+            foreach(Round.Phases phase in Enum.GetValues(typeof(Round.Phases)))
+            {
+                Turns.Add(phase, new List<PlayerTurn>());
+            }
 
             Game.PhaseCompleted += onPhaseCompleted;
             Game.TurnTaken += onTurnTaken;
             Game.StartGame();
 
+            Draw();
             Auction();
             Draw();
             CallTrump();
             Draw();
             PassCards();
+            Draw();
+            ShowMeld();
         }
 
         protected void Auction()
@@ -43,10 +53,12 @@ namespace Pinochle
                     if (bid == "pass")
                     {
                         Game.PassBid();
+                        Draw();
                         continue;
                     }
 
                     Game.PlaceBid(int.Parse(bid));
+                    Draw();
 
                 }
                 catch (Exceptions.PinochleRuleViolationException exception)
@@ -103,9 +115,30 @@ namespace Pinochle
 
             Game.PassCardsToLeader(pass);
 
+            Draw();
+
             pass = AskForCards();
 
             Game.PassCardsBack(pass);
+        }
+
+        public void ShowMeld()
+        {
+            Game.CalculateMeld();
+            foreach(Player player in Game.Players)
+            {
+
+                List<Meld>  meld = Game.CurrentRound.MeldScore[player.Position];
+
+                Console.WriteLine("{0} Meld. {1} Points", player, meld.Sum(score => score.GetValue()));
+                Console.WriteLine(Game.CurrentRound.PlayerHand(player));
+                foreach(Meld meldScore in meld)
+                {
+                    Console.WriteLine(meldScore);
+                }
+            }
+
+            Console.WriteLine("Here");
         }
 
         protected Cards.Card[] AskForCards()
@@ -166,20 +199,32 @@ namespace Pinochle
         {
             Console.Clear();
 
-            foreach(PhaseCompleted phase in PhaseMessages)
+            Console.WriteLine(string.Format("Phase: {0} | Player: {1}", Game.CurrentRound.Phase, Game.ActivePlayer));
+            Console.WriteLine("----------------------------------------------------------------------------------");
+
+            foreach(PhaseCompleted phase in Phases)
             {
                 Console.WriteLine(phase);
             }
+
+            Console.WriteLine("----------------------------------------------------------------------------------");
+
+            foreach(PlayerTurn turn in Turns[Game.CurrentRound.Phase])
+            {
+                Console.WriteLine(turn);
+            }
+
+            Console.WriteLine("----------------------------------------------------------------------------------");
         }
 
         public void onPhaseCompleted(PhaseCompleted phaseCompleted)
         {
-            PhaseMessages.Add(phaseCompleted);
+            Phases.Add(phaseCompleted);
             Console.WriteLine(phaseCompleted);
         }
         public void onTurnTaken(PlayerTurn playerTurn)
         {
-            Turns.Add(playerTurn);
+            Turns[Game.CurrentRound.Phase].Add(playerTurn);
             Console.WriteLine(playerTurn);
         }
     }

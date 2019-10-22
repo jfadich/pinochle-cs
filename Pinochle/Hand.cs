@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Pinochle.Cards;
-using System.Text;
+using System.Linq;
 
 namespace Pinochle
 {
@@ -13,8 +13,14 @@ namespace Pinochle
         public Hand(Card[] cards)
         {
             Array.Sort(cards);
-            this.DealtCards = cards;
-            this.Cards = new List<Card>(cards);
+            DealtCards = cards;
+            Cards = new List<Card>(cards);
+        }
+
+        public Boolean HasCards(Card[] needles)
+        {
+            List < Card > needlesList = new List<Card>(needles);
+            return !needlesList.Where(needle => !Cards.Contains(needle)).Any();
         }
 
         public Card[] TakeCards(Card[] requestedCards)
@@ -37,7 +43,7 @@ namespace Pinochle
 
                 if ( !Cards.Contains(card))
                 {
-                    throw new Exception(String.Format("Card '%s' is not in the hand"));
+                    throw new Exception(String.Format("Card '%s' is not in the hand", card));
                 }
 
                 cards[i] = card;

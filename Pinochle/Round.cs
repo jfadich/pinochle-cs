@@ -24,14 +24,18 @@ namespace Pinochle
 
         public Player Leader;
 
-        public int[] MeldScore { get; protected set; }
+        public List<Meld>[] MeldScore { get; protected set; }
 
         public int[] TrickScore { get; protected set; }
 
         public Auction Auction;
 
-
         public Hand[] Hands { get; protected set; }
+
+        public Round()
+        {
+            MeldScore = new List<Meld>[4];
+        }
 
         public void Deal(Player Dealer)
         {
@@ -56,10 +60,19 @@ namespace Pinochle
                 throw new Exceptions.PinochleRuleViolationException(player + " did not win the auction and cannot call trump");
             }
 
+            Leader = player;
             Trump = trump;
 
             AdvancePhase();
         }
+
+        public void CalculateMeld(Player player)
+        {
+            HandEvaluator eval = new HandEvaluator(PlayerHand(player), Trump);
+
+            MeldScore[player.Position] = eval.GetMeld();
+        }
+
         public void AdvancePhase()
         {
             if (Phase == Phases.Complete)

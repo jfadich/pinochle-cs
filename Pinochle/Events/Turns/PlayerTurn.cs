@@ -8,9 +8,16 @@ namespace Pinochle.Events.Turns
     {
         public Player Player { get; protected set; }
 
-        public PlayerTurn(Player player)
+        public string Message;
+
+        public PlayerTurn(Player player, string message)
         {
             Player = player;
+            Message = message;
+        }
+        public override string ToString()
+        {
+            return Message;
         }
     }
 }

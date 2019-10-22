@@ -88,16 +88,16 @@ namespace Pinochle.Cards
             switch (getSuit())
             {
                 case Suits.Spades:
-                    suit = "s";
+                    suit = "♠";
                     break;
                 case Suits.Clubs:
-                    suit = "c";
+                    suit = "♣";
                     break;
                 case Suits.Hearts:
-                    suit = "h";
+                    suit = "♥";
                     break;
                 case Suits.Diamonds:
-                    suit = "d";
+                    suit = "♦";
                     break;
             }
 
@@ -128,6 +128,13 @@ namespace Pinochle.Cards
         public override string ToString()
         {
             return GetShortName();
+        }
+
+        public override bool Equals(Object obj)
+        {
+            Card card = (Card)obj;
+
+            return Value == card.Value;
         }
 
         public int CompareTo(Card other)

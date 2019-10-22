@@ -9,13 +9,9 @@ namespace Pinochle.Events.Turns
         public int Bid { get; protected set; }
 
         public bool IsOpen = false;
-        public BidPlaced(Player player, int bid) : base(player)
+        public BidPlaced(Player player, int bid) : base(player, String.Format("{0} bid {1}", player, bid))
         {
             Bid = bid;
-        }
-        public override string ToString()
-        {
-            return String.Format("{0} bid {1}", Player, Bid);
         }
     }
 }
