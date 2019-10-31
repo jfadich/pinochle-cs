@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Pinochle.Cards
 {
-    class PinochleCard : Card
+    class PinochleCard : Card, IComparable<PinochleCard>
     {
         new public enum Ranks : byte
         {
@@ -32,13 +32,28 @@ namespace Pinochle.Cards
             return rank == Ranks.Ace || rank == Ranks.Ten || rank == Ranks.King;
         }
 
+        public int GetPinochleValue()
+        {
+            if(getRank() == Card.Ranks.Ace)
+            {
+                return Value + 14;
+            }
+
+            if(getRank() == Card.Ranks.Ten)
+            {
+                return Value + 4;
+            }
+
+            return Value;
+        }
+
         // @todo order this by pinochle rank
         public int CompareTo(PinochleCard other)
         {
-            if (value == other.Value)
+            if (GetPinochleValue() == other.GetPinochleValue())
                 return 0;
 
-            return value > other.Value ? -1 : 1;
+            return GetPinochleValue() > other.GetPinochleValue() ? -1 : 1;
         }
     }
 }

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using Pinochle.Tricks;
+using Pinochle.Cards;
+using System.Linq;
 
 namespace Pinochle
 {
@@ -16,7 +18,7 @@ namespace Pinochle
             Complete
         }
 
-        public Cards.Card.Suits Trump { get; protected set; }
+        public Card.Suits Trump { get; protected set; }
 
         public Phases Phase { get; protected set; } = Phases.Dealing;
 
@@ -24,11 +26,15 @@ namespace Pinochle
 
         public Player Leader;
 
+        public int[] TeamScore = new int[2] { 0,0};
+
         public List<Meld>[] MeldScore { get; protected set; }
 
         public int[] TrickScore { get; protected set; }
 
         public Auction Auction;
+
+        public Arena Arena;
 
         public Hand[] Hands { get; protected set; }
 
@@ -39,7 +45,7 @@ namespace Pinochle
 
         public void Deal(Player Dealer)
         {
-            Cards.Deck deck = Cards.PinochleDeck.Make();
+            Cards.Deck deck = PinochleDeck.Make();
             this.Dealer = Dealer;
 
             Hands = deck.Shuffle().Deal(4);
@@ -53,7 +59,7 @@ namespace Pinochle
             return Hands[player.Position];
         }
 
-        public void CallTrump(Player player, Cards.Card.Suits trump)
+        public void CallTrump(Player player, Card.Suits trump)
         {
             if(Auction.WinningPosition != player.Position)
             {
@@ -71,6 +77,68 @@ namespace Pinochle
             HandEvaluator eval = new HandEvaluator(PlayerHand(player), Trump);
 
             MeldScore[player.Position] = eval.GetMeld();
+        }
+
+        public void OpenArena()
+        {
+            Arena = new Arena(Trump, Leader);
+        }
+
+        public void PlayTrick(Player player, PinochleCard play)
+        {
+            if (Phase != Phases.Playing || Arena == null || !Arena.IsPlaying)
+            {
+                throw new Exceptions.IllegalTrickException("Arena is not open");
+            }
+
+            Arena.CanPlay(play, PlayerHand(player), true);
+
+            PlayerHand(player).TakeCard(play);
+            Arena.PlayTrick(player, play);
+
+            if( ! Arena.IsPlaying )
+            {
+                AdvancePhase();
+            }
+        }
+
+        public int[] CalculateTeamScore()
+        {
+            TeamScore = new int[2];
+
+            if(TrickScore[0] > 0)
+            {
+                TeamScore[0] += MeldScore[0].Sum(meld => meld.GetValue());
+                TeamScore[0] += MeldScore[2].Sum(meld => meld.GetValue());
+            }
+
+            if(TrickScore[1] > 0)
+            {
+                TeamScore[1] += MeldScore[1].Sum(meld => meld.GetValue());
+                TeamScore[1] += MeldScore[2].Sum(meld => meld.GetValue());
+            }
+
+            int[] trickScore = Arena.GetTeamScore();
+
+            TeamScore[0] += trickScore[0];
+            TeamScore[1] += trickScore[1];
+
+            if(Auction.WinningPosition == 0 || Auction.WinningPosition == 2){
+                Auction.MetBid = Auction.WinningBid < TeamScore[0];
+                if ( ! Auction.MetBid)
+                {
+                    TeamScore[0] = 0 - Auction.WinningBid;
+                }
+            } else
+            {
+                Auction.MetBid = Auction.WinningBid < TeamScore[1];
+                if (!Auction.MetBid)
+                {
+                    TeamScore[1] = 0 - Auction.WinningBid;
+                }
+            }
+
+            return TeamScore;
         }
 
         public void AdvancePhase()

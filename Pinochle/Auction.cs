@@ -19,6 +19,8 @@ namespace Pinochle
 
         public bool[] PlayersPassed;
 
+        public bool MetBid = false;
+
         public Auction()
         {
             Bids = new int[4];

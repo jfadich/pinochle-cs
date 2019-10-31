@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Pinochle.Cards;
 using Pinochle.Events.Phases;
 using Pinochle.Events.Turns;
+using System.Linq;
 
 namespace Pinochle
 {
@@ -10,7 +11,7 @@ namespace Pinochle
     {
         public event Action<PlayerTurn> TurnTaken;
         public event Action<PhaseCompleted> PhaseCompleted;
-        public List<Round> Rounds { get; protected set; }
+        public List<Round> Rounds { get; protected set; } = new List<Round>();
 
         public Player[] Players;
 
@@ -41,11 +42,6 @@ namespace Pinochle
 
         protected void StartRound()
         {
-            if (CurrentRound != null)
-            {
-                Rounds.Add(CurrentRound);
-            }
-
             CurrentRound = new Round();
 
             CurrentRound.Deal(ActivePlayer);
@@ -105,11 +101,11 @@ namespace Pinochle
             SetNextPlayer(1);
         }
 
-        public void PassCardsToLeader(Card[] cards)
+        public void PassCardsToLeader(PinochleCard[] cards)
         {
             Player partner = Players[GetNexPosition(1)];
 
-            TurnTaken?.Invoke(new PassedCards(ActivePlayer, partner));
+            TurnTaken?.Invoke(new PassedCards(ActivePlayer, partner, cards));
 
             GetPlayerHand().TakeCards(cards);
 
@@ -118,17 +114,19 @@ namespace Pinochle
             GetPlayerHand().GiveCards(cards);
         }
 
-        public void PassCardsBack(Card[] cards)
+        public void PassCardsBack(PinochleCard[] cards)
         {
             Player partner = Players[GetNexPosition(1)];
 
             GetPlayerHand().TakeCards(cards);
 
-            CurrentRound.PlayerHand(Players[GetNexPosition(1)]).GiveCards(cards);
+            CurrentRound.PlayerHand(partner).GiveCards(cards);
 
-            TurnTaken?.Invoke(new PassedCards(ActivePlayer, partner));
+            TurnTaken?.Invoke(new PassedCards(ActivePlayer, partner, cards));
 
             CurrentRound.AdvancePhase();
+
+            CalculateMeld();
 
             PhaseCompleted?.Invoke(new PassingCompleted());
         }
@@ -139,6 +137,63 @@ namespace Pinochle
             {
                 CurrentRound.CalculateMeld(player);
             }
+        }
+
+        public void StartTricks()
+        {
+            CurrentRound.OpenArena();
+
+            ActivePlayer = CurrentRound.Leader;
+        }
+
+        public void PlayTrick(PinochleCard play)
+        {
+            CurrentRound.PlayTrick(ActivePlayer, play);
+
+            TurnTaken?.Invoke(new TrickPlayed(ActivePlayer, play));
+
+            if (CurrentRound.Arena.ActiveTrick.IsCompleted)
+            {
+                ActivePlayer = CurrentRound.Arena.ActiveTrick.WinningPlay.Position;
+
+                TurnTaken?.Invoke(new TrickCompleted(ActivePlayer));
+            }
+            else
+            {
+                SetNextPlayer();
+            }
+
+            if (!IsCurrently(Round.Phases.Playing))
+            {
+                PhaseCompleted?.Invoke(new PlayingCompleted());
+                CompleteRound();
+                return;
+            }
+        }
+
+        public void CompleteRound()
+        {
+            Rounds.Add(CurrentRound);
+
+            int[] scores = GetScores();
+            if(scores[0] >= 1500 || scores[1] >= 1500) {
+                Console.WriteLine("Game Over!");
+            } else
+            {
+                ActivePlayer = CurrentRound.Dealer;
+                SetNextPlayer();
+                StartRound();
+            }
+        }
+
+        public int[] GetScores()
+        {
+            int[] scores = new int[4];
+
+            scores[0] = Rounds.Sum(round => round.TeamScore[0]);
+            scores[0] = Rounds.Sum(round => round.TeamScore[1]);
+
+            return scores;
         }
 
         public Hand GetPlayerHand()

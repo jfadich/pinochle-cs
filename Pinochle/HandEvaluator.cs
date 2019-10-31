@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Pinochle.Cards;
 using System.Linq;
+using Pinochle.Tricks;
 
 namespace Pinochle
 {
@@ -27,9 +28,9 @@ namespace Pinochle
             {
                 if(Hand.HasCards(meld.Cards.ToArray()))
                 {
-                    List<Card> remainder = new List<Card>();
-                    List<Card> found = new List<Card>();
-                    foreach(Card card in Hand.Cards)
+                    List<PinochleCard> remainder = new List<PinochleCard>();
+                    List<PinochleCard> found = new List<PinochleCard>();
+                    foreach(PinochleCard card in Hand.Cards)
                     {
                         if( meld.Cards.Contains(card) && ! found.Contains(card)) {
                             found.Add(card);

@@ -18,6 +18,11 @@ namespace Pinochle
             Position = position;
         }
 
+        public Boolean IsSameTeam(Player player)
+        {
+            return (player.Position & 3) == (Position & 3);
+        }
+
         public override string ToString()
         {
             return String.Format("Player {0}", Position + 1);

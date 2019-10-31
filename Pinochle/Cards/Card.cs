@@ -82,24 +82,8 @@ namespace Pinochle.Cards
         }
         public string GetShortName()
         {
-            string suit = "";
+            string suit = GetSuitShortName();
             string rankSymbol;
-
-            switch (getSuit())
-            {
-                case Suits.Spades:
-                    suit = "♠";
-                    break;
-                case Suits.Clubs:
-                    suit = "♣";
-                    break;
-                case Suits.Hearts:
-                    suit = "♥";
-                    break;
-                case Suits.Diamonds:
-                    suit = "♦";
-                    break;
-            }
 
             Ranks rank = getRank();
 
@@ -125,6 +109,39 @@ namespace Pinochle.Cards
             return String.Format("{0}{1}", rankSymbol, suit);
         }
 
+        public string GetSuitShortName()
+        {
+            string suit = "";
+
+            switch (getSuit())
+            {
+                case Suits.Spades:
+                    suit = "♠";
+                    break;
+                case Suits.Clubs:
+                    suit = "♣";
+                    break;
+                case Suits.Hearts:
+                    suit = "♥";
+                    break;
+                case Suits.Diamonds:
+                    suit = "♦";
+                    break;
+            }
+
+            return suit;
+        }
+
+        public Boolean IsSuit(Card.Suits suit)
+        {
+            return getSuit() == suit;
+        }
+
+        public Boolean IsSuit(Card card)
+        {
+            return IsSuit(card.getSuit());
+        }
+
         public override string ToString()
         {
             return GetShortName();
@@ -134,7 +151,7 @@ namespace Pinochle.Cards
         {
             Card card = (Card)obj;
 
-            return Value == card.Value;
+            return value == card.Value;
         }
 
         public int CompareTo(Card other)

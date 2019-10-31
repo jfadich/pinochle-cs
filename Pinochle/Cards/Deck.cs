@@ -73,11 +73,11 @@ namespace Pinochle.Cards
 
             for (int hand = 0; hand < numberOfHands; hand++)
             {
-                Card[] cards = new Card[perHand];
+                PinochleCard[] cards = new PinochleCard[perHand];
 
                 for(int card = 0; card < perHand; card++)
                 {
-                    cards[card] = DrawCard();
+                    cards[card] = (PinochleCard)DrawCard();
                 }
 
                 hands[hand] = new Hand(cards);

@@ -7,55 +7,56 @@ namespace Pinochle
 {
     class Hand
     {
-        public List<Card> Cards { get; }
-        public Card[] DealtCards { get; }
+        public List<PinochleCard> Cards { get; }
+        public PinochleCard[] DealtCards { get; }
 
-        public Hand(Card[] cards)
+        public Hand(PinochleCard[] cards)
         {
             Array.Sort(cards);
             DealtCards = cards;
-            Cards = new List<Card>(cards);
+            Cards = new List<PinochleCard>(cards);
         }
 
-        public Boolean HasCards(Card[] needles)
+        public Boolean HasCards(PinochleCard[] needles)
         {
-            List < Card > needlesList = new List<Card>(needles);
+            List <PinochleCard> needlesList = new List<PinochleCard>(needles);
             return !needlesList.Where(needle => !Cards.Contains(needle)).Any();
         }
 
-        public Card[] TakeCards(Card[] requestedCards)
+        public PinochleCard TakeCard(PinochleCard requestedCard)
+        {
+            if (!Cards.Contains(requestedCard))
+            {
+                throw new Exception(String.Format("Card '%s' is not in the hand", requestedCard));
+            }
+
+            Cards.Remove(requestedCard);
+
+            return requestedCard;
+        }
+
+        public PinochleCard[] TakeCards(PinochleCard[] requestedCards)
         {
             if(requestedCards.Length > Cards.Count)
             {
                 throw new Exception("Can't take more cards than are in the hand");
             }
 
-            Card[] cards = new Card[requestedCards.Length];
+            PinochleCard[] cards = new PinochleCard[requestedCards.Length];
 
-            foreach(Card card in requestedCards)
-            {
-
-            }
 
             for(int i = 0; i < requestedCards.Length; i++)
             {
-                Card card = requestedCards[i];
-
-                if ( !Cards.Contains(card))
-                {
-                    throw new Exception(String.Format("Card '%s' is not in the hand", card));
-                }
-
-                cards[i] = card;
-                Cards.Remove(card);
+                cards[i] = TakeCard(requestedCards[i]);
             }
 
             return cards;
         }
 
-        public void GiveCards(Card[] cards)
+        public void GiveCards(PinochleCard[] cards)
         {
             Cards.AddRange(cards);
+            Cards.Sort();
         }
 
         public override string ToString()

@@ -38,13 +38,17 @@ namespace Pinochle
             PassCards();
             Draw();
             ShowMeld();
+            Draw();
+            PlayTricks();
+
+            Draw();
         }
 
         protected void Auction()
         {
             while (Game.IsCurrently(Round.Phases.Bidding))
             {
-                Console.WriteLine(Game.GetPlayerHand());
+                DrawHand();
                 Console.Write(String.Format("What does {0} bid? ", Game.ActivePlayer));
                 string bid = Console.ReadLine();
 
@@ -78,7 +82,7 @@ namespace Pinochle
             Cards.Card.Suits? trump = null;
             do
             {
-                Console.WriteLine(Game.GetPlayerHand());
+                DrawHand();
                 Console.WriteLine(Game.ActivePlayer + " pease select trump [c,h,s,d]");
 
                 string providedTrump = Console.ReadLine();
@@ -111,13 +115,13 @@ namespace Pinochle
 
         protected void PassCards()
         {
-            Cards.Card[] pass = AskForCards();
+            Cards.PinochleCard[] pass = AskForCards("select 4 cards pass to your partner", 4);
 
             Game.PassCardsToLeader(pass);
 
             Draw();
 
-            pass = AskForCards();
+            pass = AskForCards("select 4 cards pass back to your partner", 4);
 
             Game.PassCardsBack(pass);
         }
@@ -138,37 +142,95 @@ namespace Pinochle
                 }
             }
 
-            Console.WriteLine("Here");
+            Console.ReadLine();
         }
 
-        protected Cards.Card[] AskForCards()
+        public void PlayTricks()
+        {
+            Game.StartTricks();
+
+            Cards.PinochleCard trick = AskForACard(" Play a trick.");
+
+            Game.PlayTrick(trick);
+            Draw();
+
+            while(Game.IsCurrently(Round.Phases.Playing))
+            {
+
+                trick = AskForACard(" Play a trick.");
+
+                try
+                {
+                    Game.PlayTrick(trick);
+                    Draw();
+                } catch(Exceptions.IllegalTrickException e)
+                {
+                    Draw();
+                    Console.WriteLine(e.Message);
+                }
+            }
+        }
+
+        protected Cards.PinochleCard AskForACard(string message)
+        {
+            return AskForCards(message, 1)[0];
+        }
+
+        protected Cards.PinochleCard[] AskForCards(string message, int numberOfCards)
         {
             Hand hand = Game.GetPlayerHand();
 
             int j = 0;
             foreach (Cards.PinochleCard card in hand.Cards)
             {
-                Console.WriteLine(String.Format("{0}: {1}", j, card.GetName()));
+                bool canPlay = true;
+
+                if (card.getColor() == Cards.PinochleCard.Color.Red)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.White;
+                }
+
+                if (Game.IsCurrently(Round.Phases.Playing))
+                {
+                    canPlay = Game.CurrentRound.Arena.CanPlay(card, hand);
+
+                    if(!canPlay)
+                    {
+                        Console.BackgroundColor = ConsoleColor.DarkGray;
+                        Console.WriteLine(String.Format("X: {0}", card.GetName()));
+                        Console.ResetColor();
+                        j++;
+                        continue;
+                    }
+                }
+
+                Console.WriteLine(String.Format("{0}: {1} {2}", j, card.GetSuitShortName(), card.GetName()));
                 j++;
+                
             }
-            Console.WriteLine(Game.ActivePlayer + " select 4 cards pass to your partner");
-            Console.WriteLine(Game.GetPlayerHand());
+            Console.WriteLine(Game.ActivePlayer + message);
+            Console.ResetColor();
+            DrawHand();
 
             bool inputValid = false;
-            Cards.Card[] selectedCards;
+            Cards.PinochleCard[] selectedCards;
 
             do
             {
                 string cardsInput = Console.ReadLine();
                 string[] cards = cardsInput.Split(" ");
-                selectedCards = new Cards.Card[4];
+                selectedCards = new Cards.PinochleCard[numberOfCards];
 
-                if (cards.Length < 4)
+                if (cards.Length < numberOfCards)
                 {
                     continue;
                 }
 
-                for (int i = 0; i < 4; i++)
+                for (int i = 0; i < numberOfCards; i++)
                 {
                     try
                     {
@@ -180,7 +242,7 @@ namespace Pinochle
                         }
                         else
                         {
-                            selectedCards[i] = hand.Cards[i];
+                            selectedCards[i] = hand.Cards[cardIndex];
                             inputValid = true;
                         }
                     }
@@ -195,11 +257,34 @@ namespace Pinochle
             return selectedCards;
         }
 
+        protected void DrawHand()
+        {
+            Console.ResetColor();
+            foreach (Cards.PinochleCard card in Game.GetPlayerHand().Cards)
+            {
+                if (card.getColor() == Cards.PinochleCard.Color.Red)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.White;
+                }
+
+                Console.Write(card + " " );
+            }
+
+            Console.WriteLine();
+
+            Console.ResetColor();
+        }
+
         protected void Draw()
         {
             Console.Clear();
 
-            Console.WriteLine(string.Format("Phase: {0} | Player: {1}", Game.CurrentRound.Phase, Game.ActivePlayer));
+            int[] scores = Game.GetScores();
+            Console.WriteLine(string.Format("Phase: {0} | Current Player: {1} | Team 1 Score {2} | Team 0 Score {3}", Game.CurrentRound.Phase, Game.ActivePlayer, scores[0], scores[1]));
             Console.WriteLine("----------------------------------------------------------------------------------");
 
             foreach(PhaseCompleted phase in Phases)
