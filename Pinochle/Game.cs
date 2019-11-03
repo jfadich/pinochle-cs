@@ -19,6 +19,8 @@ namespace Pinochle
 
         public Player ActivePlayer { get; protected set; }
 
+        public bool IsCompleted = false;
+
         public void StartGame(int startingPosition = 0)
         {
             int numberOfPlayers = 4;
@@ -173,10 +175,12 @@ namespace Pinochle
 
         public void CompleteRound()
         {
+            CurrentRound.CalculateTeamScore();
             Rounds.Add(CurrentRound);
 
             int[] scores = GetScores();
-            if(scores[0] >= 1500 || scores[1] >= 1500) {
+            if(scores[0] >= 150 || scores[1] >= 150) {
+                IsCompleted = true;
                 Console.WriteLine("Game Over!");
             } else
             {
@@ -191,7 +195,7 @@ namespace Pinochle
             int[] scores = new int[4];
 
             scores[0] = Rounds.Sum(round => round.TeamScore[0]);
-            scores[0] = Rounds.Sum(round => round.TeamScore[1]);
+            scores[1] = Rounds.Sum(round => round.TeamScore[1]);
 
             return scores;
         }

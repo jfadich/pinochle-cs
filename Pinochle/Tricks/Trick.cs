@@ -35,7 +35,7 @@ namespace Pinochle.Tricks
 
        public int Score()
         {
-            return Plays.Sum(play => play.Card.IsCounter() ? 10 : 0);
+            return Plays.Sum(play => play.Card.IsCounter() ? 1 : 0);
         }
 
         public void Resolve(Play winner)

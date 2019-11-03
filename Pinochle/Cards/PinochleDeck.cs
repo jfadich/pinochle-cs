@@ -6,11 +6,11 @@ namespace Pinochle.Cards
 {
     class PinochleDeck : Deck
     {
-        new public static Deck Make()
+        new public static PinochleDeck Make()
         {
-            Deck deck = new Deck();
+            PinochleDeck deck = new PinochleDeck();
 
-            foreach (Card.Suits suit in Enum.GetValues(typeof(Card.Suits)))
+            foreach (PinochleCard.Suits suit in Enum.GetValues(typeof(PinochleCard.Suits)))
             {
                 foreach (PinochleCard.Ranks rank in Enum.GetValues(typeof(PinochleCard.Ranks)))
                 {

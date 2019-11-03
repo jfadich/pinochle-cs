@@ -13,14 +13,14 @@ namespace Pinochle
         {
             AllMeld = new List<Meld>
             {
-                new Meld(Dix(trump), 10, 20,"Dix"),
-                new Meld(Marriage(trump), 40, 80, "Royal Marriage"),
-                new Meld(Run(trump), 150, 1500, "Run"),
-                new Meld(Pinochle(), 40, 300, "Pinochle"),
-                new Meld(FourOfAKind(PinochleCard.Ranks.Jack), 40, 400, "Jacks"),
-                new Meld(FourOfAKind(PinochleCard.Ranks.Queen), 60, 600, "Queens"),
-                new Meld(FourOfAKind(PinochleCard.Ranks.King), 80, 800, "Kings"),
-                new Meld(FourOfAKind(PinochleCard.Ranks.Ace), 100, 1000, "Aces"),
+                new Meld(Dix(trump), 1, 2,"Dix"),
+                new Meld(Marriage(trump), 4, 8, "Royal Marriage"),
+                new Meld(Run(trump), 15, 150, "Run"),
+                new Meld(Pinochle(), 4, 30, "Pinochle"),
+                new Meld(FourOfAKind(PinochleCard.Ranks.Jack), 4, 40, "Jacks"),
+                new Meld(FourOfAKind(PinochleCard.Ranks.Queen), 6, 60, "Queens"),
+                new Meld(FourOfAKind(PinochleCard.Ranks.King), 8, 00, "Kings"),
+                new Meld(FourOfAKind(PinochleCard.Ranks.Ace), 10, 100, "Aces"),
 
             };
 
@@ -28,7 +28,7 @@ namespace Pinochle
             {
                 if(suit != trump)
                 {
-                    AllMeld.Add(new Meld(Marriage(suit), 20, 40, "Marriage"));
+                    AllMeld.Add(new Meld(Marriage(suit), 2, 4, "Marriage"));
                 }
             }
         }

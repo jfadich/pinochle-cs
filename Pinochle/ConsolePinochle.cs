@@ -30,18 +30,19 @@ namespace Pinochle
             Game.TurnTaken += onTurnTaken;
             Game.StartGame();
 
-            Draw();
-            Auction();
-            Draw();
-            CallTrump();
-            Draw();
-            PassCards();
-            Draw();
-            ShowMeld();
-            Draw();
-            PlayTricks();
-
-            Draw();
+            while(!Game.IsCompleted)
+            {
+                 Draw();
+                Auction();
+                Draw();
+                CallTrump();
+                Draw();
+                PassCards();
+                Draw();
+                ShowMeld();
+                Draw();
+                PlayTricks();
+            }
         }
 
         protected void Auction()
@@ -184,6 +185,7 @@ namespace Pinochle
             foreach (Cards.PinochleCard card in hand.Cards)
             {
                 bool canPlay = true;
+                Console.ResetColor();
 
                 if (card.getColor() == Cards.PinochleCard.Color.Red)
                 {
@@ -202,7 +204,6 @@ namespace Pinochle
                     {
                         Console.BackgroundColor = ConsoleColor.DarkGray;
                         Console.WriteLine(String.Format("X: {0}", card.GetName()));
-                        Console.ResetColor();
                         j++;
                         continue;
                     }
@@ -212,9 +213,10 @@ namespace Pinochle
                 j++;
                 
             }
-            Console.WriteLine(Game.ActivePlayer + message);
+
             Console.ResetColor();
-            DrawHand();
+            Console.WriteLine(Game.ActivePlayer + message);
+            
 
             bool inputValid = false;
             Cards.PinochleCard[] selectedCards;
@@ -273,15 +275,16 @@ namespace Pinochle
 
                 Console.Write(card + " " );
             }
-
+            Console.ResetColor();
             Console.WriteLine();
 
-            Console.ResetColor();
+            
         }
 
         protected void Draw()
         {
             Console.Clear();
+            Console.ResetColor();
 
             int[] scores = Game.GetScores();
             Console.WriteLine(string.Format("Phase: {0} | Current Player: {1} | Team 1 Score {2} | Team 0 Score {3}", Game.CurrentRound.Phase, Game.ActivePlayer, scores[0], scores[1]));
@@ -304,6 +307,14 @@ namespace Pinochle
 
         public void onPhaseCompleted(PhaseCompleted phaseCompleted)
         {
+            if(phaseCompleted is PlayingCompleted)
+            {
+                foreach (Round.Phases phase in Enum.GetValues(typeof(Round.Phases)))
+                {
+                    Turns[phase].Clear();
+                }
+            }
+
             Phases.Add(phaseCompleted);
             Console.WriteLine(phaseCompleted);
         }
