@@ -11,7 +11,7 @@ namespace Pinochle
     {
         public event Action<PlayerTurn> TurnTaken;
         public event Action<PhaseCompleted> PhaseCompleted;
-        public List<Round> Rounds { get; protected set; } = new List<Round>();
+        private readonly List<Round> _rounds = new List<Round>();
 
         public Player[] Players;
 
@@ -19,12 +19,12 @@ namespace Pinochle
 
         public Player ActivePlayer { get; protected set; }
 
-        public bool IsCompleted = false;
+        public bool IsCompleted;
+
+        protected const int numberOfPlayers = 4;
 
         public void StartGame(int startingPosition = 0)
         {
-            int numberOfPlayers = 4;
-
             Players = new Player[numberOfPlayers];
 
             for(int i = 0;  i < numberOfPlayers; i++)
@@ -176,7 +176,7 @@ namespace Pinochle
         public void CompleteRound()
         {
             CurrentRound.CalculateTeamScore();
-            Rounds.Add(CurrentRound);
+            _rounds.Add(CurrentRound);
 
             int[] scores = GetScores();
             if(scores[0] >= 150 || scores[1] >= 150) {
@@ -194,10 +194,20 @@ namespace Pinochle
         {
             int[] scores = new int[4];
 
-            scores[0] = Rounds.Sum(round => round.TeamScore[0]);
-            scores[1] = Rounds.Sum(round => round.TeamScore[1]);
+            scores[0] = _rounds.Sum(round => round.TeamScore[0]);
+            scores[1] = _rounds.Sum(round => round.TeamScore[1]);
 
             return scores;
+        }
+
+        public Player PlayerAtPosition(int position)
+        {
+            if(position >= numberOfPlayers)
+            {
+                return null;
+            }
+
+            return Players[position];
         }
 
         public Hand GetPlayerHand()

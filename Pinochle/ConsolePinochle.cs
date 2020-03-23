@@ -32,7 +32,7 @@ namespace Pinochle
 
             while(!Game.IsCompleted)
             {
-                 Draw();
+                Draw();
                 Auction();
                 Draw();
                 CallTrump();

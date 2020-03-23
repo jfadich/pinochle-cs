@@ -45,7 +45,7 @@ namespace Pinochle.Tricks
             {
                 ActiveTrick.Play(player, play);
 
-                if (ActiveTrick.Plays.Count() == 4) // @todo magic number for player count
+                if (ActiveTrick.Plays.Count() == 4) // @todo remove magic number for player count
                 {
                     ResolveTrick();
                 }
@@ -96,10 +96,11 @@ namespace Pinochle.Tricks
          */
         protected Boolean CardBeatsOpponent(PinochleCard card, PinochleCard opponent)
         {
-            if(card == opponent)
+            if(card == opponent || (!card.IsSuit(ActiveTrick.LeadSuit) && !card.IsSuit(Trump)))
             {
                 return false;
             }
+
             if (card.IsSuit(opponent))
             {
                 return card.GetPinochleValue() > opponent.GetPinochleValue();
