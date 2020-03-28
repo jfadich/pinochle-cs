@@ -9,13 +9,14 @@ namespace Pinochle
     {
         static void Main(string[] args)
         {
-            //ConsolePinochle pinochle = new ConsolePinochle();
+            Console.ReadLine();
+            ConsolePinochle pinochle = new ConsolePinochle();
 
-            //pinochle.Play();
+            pinochle.Play();
 
-            Server.Server server = new Server.Server();
+            //Server.Server server = new Server.Server();
 
-            server.Start();
+            //server.Start();
         }
     }
 }

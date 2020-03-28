@@ -9,9 +9,9 @@ namespace Pinochle
 {
     class HandEvaluator
     {
-        protected Hand Hand;
+        private Hand Hand;
 
-        protected Card.Suits Trump;
+        private Card.Suits Trump;
 
         public HandEvaluator(Hand hand, Card.Suits trump)
         {

@@ -19,9 +19,8 @@ namespace Pinochle
                 new Meld(Pinochle(), 4, 30, "Pinochle"),
                 new Meld(FourOfAKind(PinochleCard.Ranks.Jack), 4, 40, "Jacks"),
                 new Meld(FourOfAKind(PinochleCard.Ranks.Queen), 6, 60, "Queens"),
-                new Meld(FourOfAKind(PinochleCard.Ranks.King), 8, 00, "Kings"),
+                new Meld(FourOfAKind(PinochleCard.Ranks.King), 8, 80, "Kings"),
                 new Meld(FourOfAKind(PinochleCard.Ranks.Ace), 10, 100, "Aces"),
-
             };
 
             foreach(PinochleCard.Suits suit in Enum.GetValues(typeof(PinochleCard.Suits)))

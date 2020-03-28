@@ -7,9 +7,9 @@ namespace Pinochle
 {
     class Meld
     {
-        protected int Value;
+        private int Value;
 
-        protected int DoubleValue;
+        private int DoubleValue;
 
         public List<PinochleCard> Cards;
 
@@ -32,6 +32,19 @@ namespace Pinochle
             doubled.AddRange(Cards);
 
             return doubled.ToArray();
+        }
+
+        public int GetHashCode()
+        {
+            int code = 0;
+
+            for (int i = 0; i < Cards.Count; i++)
+            {
+                code ^= Cards[i].Value;
+                code <<= IsDoubled ? 2 : 1;
+            }
+
+            return code;
         }
 
         public int GetValue()

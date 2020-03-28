@@ -22,9 +22,9 @@ namespace Pinochle
 
         public Phases Phase { get; protected set; } = Phases.Dealing;
 
-        public Player Dealer;
+        public Player Dealer { get; private set; }
 
-        public Player Leader;
+        public Player Leader { get; private set; }
 
         public int[] TeamScore = new int[2] { 0,0};
 
@@ -43,12 +43,12 @@ namespace Pinochle
             MeldScore = new List<Meld>[4];
         }
 
-        public void Deal(Player dealer)
+        public void Deal(Player dealer, int players)
         {
             PinochleDeck deck = PinochleDeck.Make();
             Dealer = dealer;
 
-            Hands = deck.Shuffle().Deal(4);
+            Hands = deck.Shuffle().Deal(players);
 
             Auction = new Auction();
             AdvancePhase();

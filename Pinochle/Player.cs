@@ -6,16 +6,11 @@ namespace Pinochle
 {
     class Player
     {
-        public int Position { get; protected set; }
+        public int Position { get; }
 
         public Player(int position)
         {
-            if(position > 3)
-            {
-                throw new Exception("Invalid Player Position");
-            }
-
-            Position = position;
+            Position = Game.ValidPosition(position) ? position : 0;
         }
 
         public Boolean IsSameTeam(Player player)

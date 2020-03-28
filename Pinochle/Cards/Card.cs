@@ -43,37 +43,35 @@ namespace Pinochle.Cards
             Suit    = 0b00_11_0000,
             Color   = 0b00_01_0000
         };
-
-        protected byte value;
-        public byte Value { get { return value; } }
+        public byte Value { get; }
 
         public Card(byte value)
         {
-            this.value = value;
+            Value = value;
         }
 
         public Card(Ranks rank, Suits suit)
         {
-            value = (byte)((int)rank + (int)suit);
+            Value = (byte)((int)rank + (int)suit);
         }
 
         public Ranks getRank()
         {
-            return (Ranks)(value & (int)Masks.Rank);
+            return (Ranks)(Value & (int)Masks.Rank);
         }
 
         public Suits getSuit()
         {
-            return (Suits)(value & (int)Masks.Suit);
+            return (Suits)(Value & (int)Masks.Suit);
         }
         public Color getColor()
         {
-            return (Color)(value & (int)Masks.Color);
+            return (Color)(Value & (int)Masks.Color);
         }
 
         public bool Equals(Card card)
         {
-            return value == card.value;
+            return Value == card.Value;
         }
 
         public string GetName()
@@ -82,7 +80,6 @@ namespace Pinochle.Cards
         }
         public string GetShortName()
         {
-            string suit = GetSuitShortName();
             string rankSymbol;
 
             Ranks rank = getRank();
@@ -106,7 +103,7 @@ namespace Pinochle.Cards
                     break;
             }
 
-            return String.Format("{0}{1}", rankSymbol, suit);
+            return String.Format("{0}{1}", rankSymbol, GetSuitShortName());
         }
 
         public string GetSuitShortName()
@@ -151,15 +148,15 @@ namespace Pinochle.Cards
         {
             Card card = (Card)obj;
 
-            return value == card.Value;
+            return Value == card.Value;
         }
 
         public int CompareTo(Card other)
         {
-            if (value == other.Value)
+            if (Value == other.Value)
                 return 0;
 
-            return value > other.Value ? -1 : 1;
+            return Value > other.Value ? -1 : 1;
         }
     }
 }

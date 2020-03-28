@@ -19,20 +19,28 @@ namespace Pinochle
 
         public Player ActivePlayer { get; protected set; }
 
+        public int StartingPosition
+        {
+            get { return startingPosition; }
+            protected set { startingPosition = ValidPosition(value) ? value : 0; }
+        }
+        private int startingPosition;
+
         public bool IsCompleted;
 
-        protected const int numberOfPlayers = 4;
+        public const int NumberOfPlayers = 4;
 
         public void StartGame(int startingPosition = 0)
         {
-            Players = new Player[numberOfPlayers];
+            StartingPosition = startingPosition;
+            Players = new Player[NumberOfPlayers];
 
-            for(int i = 0;  i < numberOfPlayers; i++)
+            for(int i = 0;  i < NumberOfPlayers; i++)
             {
                 Players[i] = new Player(i);
             }
 
-            ActivePlayer = Players[startingPosition];
+            ActivePlayer = Players[StartingPosition];
 
             StartRound();
         }
@@ -41,12 +49,16 @@ namespace Pinochle
 
         public Round.Phases IsCurrently() => (CurrentRound.Phase);
 
+        public static bool ValidPosition(int position)
+        {
+            return position > 0 && position < NumberOfPlayers;
+        }
 
         protected void StartRound()
         {
             CurrentRound = new Round();
 
-            CurrentRound.Deal(ActivePlayer);
+            CurrentRound.Deal(ActivePlayer, NumberOfPlayers);
 
             TurnTaken?.Invoke(new DealtHands(ActivePlayer));
 
@@ -202,7 +214,7 @@ namespace Pinochle
 
         public Player PlayerAtPosition(int position)
         {
-            if(position >= numberOfPlayers)
+            if(position >= NumberOfPlayers)
             {
                 return null;
             }

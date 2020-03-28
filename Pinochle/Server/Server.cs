@@ -4,7 +4,7 @@ using Fleck;
 using System.Linq;
 using System.Threading;
 using Newtonsoft.Json;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
+//using Microsoft.AspNetCore.Server.Kestrel.Core;
 
 namespace Pinochle.Server
 {
