@@ -129,14 +129,13 @@ namespace Pinochle
 
         public void ShowMeld()
         {
-            Game.CalculateMeld();
             foreach(Player player in Game.Players)
             {
 
-                List<Meld>  meld = Game.CurrentRound.MeldScore[player.Position];
+                List<Meld>  meld = Game.GetPlayerMeld(player);
 
                 Console.WriteLine("{0} Meld. {1} Points", player, meld.Sum(score => score.GetValue()));
-                Console.WriteLine(Game.CurrentRound.PlayerHand(player));
+                Console.WriteLine(Game.GetPlayerHand(player));
                 foreach(Meld meldScore in meld)
                 {
                     Console.WriteLine(meldScore);
@@ -198,7 +197,7 @@ namespace Pinochle
 
                 if (Game.IsCurrently(Round.Phases.Playing))
                 {
-                    canPlay = Game.CurrentRound.Arena.CanPlay(card, hand);
+                    canPlay = Game.CanPlay(card);
 
                     if(!canPlay)
                     {
@@ -287,7 +286,7 @@ namespace Pinochle
             Console.ResetColor();
 
             int[] scores = Game.GetScores();
-            Console.WriteLine(string.Format("Phase: {0} | Current Player: {1} | Team 1 Score {2} | Team 0 Score {3}", Game.CurrentRound.Phase, Game.ActivePlayer, scores[0], scores[1]));
+            Console.WriteLine(string.Format("Phase: {0} | Current Player: {1} | Team 1 Score {2} | Team 0 Score {3}", Game.CurrentPhase(), Game.ActivePlayer, scores[0], scores[1]));
             Console.WriteLine("----------------------------------------------------------------------------------");
 
             foreach(PhaseCompleted phase in Phases)
@@ -297,7 +296,7 @@ namespace Pinochle
 
             Console.WriteLine("----------------------------------------------------------------------------------");
 
-            foreach(PlayerTurn turn in Turns[Game.CurrentRound.Phase])
+            foreach(PlayerTurn turn in Turns[Game.CurrentPhase()])
             {
                 Console.WriteLine(turn);
             }
@@ -320,7 +319,7 @@ namespace Pinochle
         }
         public void onTurnTaken(PlayerTurn playerTurn)
         {
-            Turns[Game.CurrentRound.Phase].Add(playerTurn);
+            Turns[Game.CurrentPhase()].Add(playerTurn);
             Console.WriteLine(playerTurn);
         }
     }

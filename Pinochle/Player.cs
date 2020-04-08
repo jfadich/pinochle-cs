@@ -8,9 +8,14 @@ namespace Pinochle
     {
         public int Position { get; }
 
-        public Player(int position)
+        public String Name { get; }
+
+        public Player(int position) : this(position, String.Format("Player {0}", position + 1)) { }
+
+        public Player(int position, String name)
         {
             Position = Game.ValidPosition(position) ? position : 0;
+            Name = name;
         }
 
         public Boolean IsSameTeam(Player player)
@@ -20,7 +25,7 @@ namespace Pinochle
 
         public override string ToString()
         {
-            return String.Format("Player {0}", Position + 1);
+            return Name;
         }
     }
 }

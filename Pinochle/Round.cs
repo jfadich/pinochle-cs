@@ -43,12 +43,12 @@ namespace Pinochle
             MeldScore = new List<Meld>[4];
         }
 
-        public void Deal(Player dealer, int players)
+        public void Deal(Player dealer)
         {
             PinochleDeck deck = PinochleDeck.Make();
             Dealer = dealer;
 
-            Hands = deck.Shuffle().Deal(players);
+            Hands = deck.Shuffle().Deal(Game.NumberOfPlayers);
 
             Auction = new Auction();
             AdvancePhase();
@@ -116,28 +116,27 @@ namespace Pinochle
             if(TrickScore[1] > 0)
             {
                 TeamScore[1] += MeldScore[1].Sum(meld => meld.GetValue());
-                TeamScore[1] += MeldScore[2].Sum(meld => meld.GetValue());
+                TeamScore[1] += MeldScore[3].Sum(meld => meld.GetValue());
             }
 
             TeamScore[0] += TrickScore[0];
             TeamScore[1] += TrickScore[1];
 
-            if(Auction.WinningPosition == 0 || Auction.WinningPosition == 2){
-                Auction.MetBid = Auction.WinningBid < TeamScore[0];
-                if ( ! Auction.MetBid)
-                {
-                    TeamScore[0] = 0 - Auction.WinningBid;
-                }
-            } else
+            int winningTeam = Auction.WinningPosition & 1;
+            Auction.MetBid = Auction.WinningBid < TeamScore[winningTeam];
+
+            if (!Auction.MetBid)
             {
-                Auction.MetBid = Auction.WinningBid < TeamScore[1];
-                if (!Auction.MetBid)
-                {
-                    TeamScore[1] = 0 - Auction.WinningBid;
-                }
+                TeamScore[winningTeam] = 0 - Auction.WinningBid;
             }
 
+
             return TeamScore;
+        }
+
+        public int CalculateTeamMeld(int team)
+        {
+            return MeldScore[team].Sum(meld => meld.GetValue()) +  MeldScore[team + 2].Sum(meld => meld.GetValue());
         }
 
         public void AdvancePhase()

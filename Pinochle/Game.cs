@@ -15,9 +15,9 @@ namespace Pinochle
 
         public Player[] Players;
 
-        public Round CurrentRound { get; protected set; }
+        private Round CurrentRound;
 
-        public Player ActivePlayer { get; protected set; }
+        public Player ActivePlayer { get { return Players[activePosition]; } }
 
         public int StartingPosition
         {
@@ -26,6 +26,8 @@ namespace Pinochle
         }
         private int startingPosition;
 
+        private int activePosition;
+
         public bool IsCompleted;
 
         public const int NumberOfPlayers = 4;
@@ -33,6 +35,8 @@ namespace Pinochle
         public void StartGame(int startingPosition = 0)
         {
             StartingPosition = startingPosition;
+            activePosition = StartingPosition;
+
             Players = new Player[NumberOfPlayers];
 
             for(int i = 0;  i < NumberOfPlayers; i++)
@@ -40,14 +44,28 @@ namespace Pinochle
                 Players[i] = new Player(i);
             }
 
-            ActivePlayer = Players[StartingPosition];
-
             StartRound();
         }
 
         public bool IsCurrently(Round.Phases phase) => (CurrentRound.Phase == phase);
 
-        public Round.Phases IsCurrently() => (CurrentRound.Phase);
+        public Round.Phases CurrentPhase() => (CurrentRound.Phase);
+
+        public Hand GetPlayerHand(Player player)
+        {
+            return CurrentRound.PlayerHand(player);
+        }
+
+        public List<Meld> GetPlayerMeld(Player player)
+        {
+            return CurrentRound.MeldScore[player.Position];
+        }
+
+        public bool CanPlay(PinochleCard card)
+        {
+            return CurrentRound.Arena.CanPlay(card, GetPlayerHand());
+        }
+
 
         public static bool ValidPosition(int position)
         {
@@ -58,9 +76,7 @@ namespace Pinochle
         {
             CurrentRound = new Round();
 
-            CurrentRound.Deal(ActivePlayer, NumberOfPlayers);
-
-            TurnTaken?.Invoke(new DealtHands(ActivePlayer));
+            CurrentRound.Deal(ActivePlayer);
 
             PhaseCompleted?.Invoke(new DealingCompleted(ActivePlayer));
 
@@ -145,7 +161,7 @@ namespace Pinochle
             PhaseCompleted?.Invoke(new PassingCompleted());
         }
 
-        public void CalculateMeld()
+        private void CalculateMeld()
         {
             foreach (Player player in Players)
             {
@@ -157,7 +173,7 @@ namespace Pinochle
         {
             CurrentRound.OpenArena();
 
-            ActivePlayer = CurrentRound.Leader;
+            activePosition = CurrentRound.Leader.Position;
         }
 
         public void PlayTrick(PinochleCard play)
@@ -168,7 +184,7 @@ namespace Pinochle
 
             if (CurrentRound.Arena.ActiveTrick.IsCompleted)
             {
-                ActivePlayer = CurrentRound.Arena.ActiveTrick.WinningPlay.Position;
+                activePosition = CurrentRound.Arena.ActiveTrick.WinningPlay.Position.Position;
 
                 TurnTaken?.Invoke(new TrickCompleted(ActivePlayer));
             }
@@ -179,7 +195,7 @@ namespace Pinochle
 
             if (!IsCurrently(Round.Phases.Playing))
             {
-                PhaseCompleted?.Invoke(new PlayingCompleted());
+                PhaseCompleted?.Invoke(new PlayingCompleted(CurrentRound.Arena));
                 CompleteRound();
                 return;
             }
@@ -190,13 +206,15 @@ namespace Pinochle
             CurrentRound.CalculateTeamScore();
             _rounds.Add(CurrentRound);
 
+            // Emit Round Complete
+
             int[] scores = GetScores();
             if(scores[0] >= 150 || scores[1] >= 150) {
                 IsCompleted = true;
                 Console.WriteLine("Game Over!");
             } else
             {
-                ActivePlayer = CurrentRound.Dealer;
+                activePosition = CurrentRound.Dealer.Position;
                 SetNextPlayer();
                 StartRound();
             }
@@ -214,7 +232,7 @@ namespace Pinochle
 
         public Player PlayerAtPosition(int position)
         {
-            if(position >= NumberOfPlayers)
+            if(!ValidPosition(position))
             {
                 return null;
             }
@@ -229,7 +247,7 @@ namespace Pinochle
 
         protected Game SetNextPlayer(int sameTeam = 0)
         {
-            ActivePlayer = Players[GetNexPosition(sameTeam)];
+            activePosition = GetNexPosition(sameTeam);
 
             return this;
         }
