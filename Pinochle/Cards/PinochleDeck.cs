@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Pinochle.Cards
 {
-    class PinochleDeck : Deck
+    public class PinochleDeck : Deck
     {
         new public static PinochleDeck Make()
         {

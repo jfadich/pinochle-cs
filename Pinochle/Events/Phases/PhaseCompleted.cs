@@ -1,7 +1,7 @@
 ﻿
 namespace Pinochle.Events.Phases
 {
-    abstract class PhaseCompleted
+    public abstract class PhaseCompleted
     {
         public string Message { get; protected set; }
         public Round.Phases Phase { get; protected set; }

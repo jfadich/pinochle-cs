@@ -5,7 +5,7 @@ using Pinochle.Cards;
 
 namespace Pinochle.Tricks
 {
-    class Trick
+    public class Trick
     {
         public Card LeadCard { get; protected set; }
 
@@ -17,7 +17,7 @@ namespace Pinochle.Tricks
 
         public Play WinningPlay;
 
-        public Trick(Player leader, PinochleCard lead)
+        public Trick(Seat leader, PinochleCard lead)
         {
             LeadCard = lead;
             LeadSuit = lead.getSuit();
@@ -25,7 +25,7 @@ namespace Pinochle.Tricks
             Plays = new List<Play>{WinningPlay};
         }
 
-        public Play Play(Player player , PinochleCard playedCard)
+        public Play Play(Seat player , PinochleCard playedCard)
         {
             Play play = new Play(player, playedCard);
             Plays.Add(play);

@@ -5,7 +5,7 @@ using Pinochle.Cards;
 
 namespace Pinochle
 {
-    class Meld
+    public class Meld
     {
         private int Value;
 

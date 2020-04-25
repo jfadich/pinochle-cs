@@ -6,6 +6,6 @@ namespace Pinochle.Events.Turns
 {
     class BidPassed : PlayerTurn
     {
-        public BidPassed(Player player) : base(player, String.Format("{0} passed", player)) { }
+        public BidPassed(Seat player) : base(player, String.Format("{0} passed", player)) { }
     }
 }

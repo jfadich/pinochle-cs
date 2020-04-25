@@ -8,7 +8,7 @@ namespace Pinochle.Events.Turns
     class TrickPlayed : PlayerTurn
     {
         public Card Play;
-        public TrickPlayed(Player player, Card play) : base(player, String.Format("{0} played {1}", player, play)) {
+        public TrickPlayed(Seat player, Card play) : base(player, String.Format("{0} played {1}", player, play)) {
             Play = play;
         }
     }

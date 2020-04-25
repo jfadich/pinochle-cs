@@ -7,7 +7,7 @@ namespace Pinochle.Events.Turns
 {
     class TrickCompleted : PlayerTurn
     {
-        public TrickCompleted(Player winner) : base(winner, String.Format("{0} wins the trick", winner)) {
+        public TrickCompleted(Seat winner) : base(winner, String.Format("{0} wins the trick", winner)) {
         }
     }
 }

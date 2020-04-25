@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Pinochle
 {
-    class Auction
+    public class Auction
     {
         public int[] Bids;
 
@@ -27,14 +27,14 @@ namespace Pinochle
             PlayersPassed = new bool[4];
         }
 
-        public void Open(Player player)
+        public void Open(Seat player)
         {
             PlaceBid(player, StartingBid);
         }
 
-        public bool PlayerPassed(Player player) => PlayersPassed[player.Position];
+        public bool PlayerPassed(Seat player) => PlayersPassed[player.Position];
 
-        public void Pass(Player player)
+        public void Pass(Seat player)
         {
             if (PlayersPassed[player.Position])
             {
@@ -58,7 +58,7 @@ namespace Pinochle
             }
         }
 
-        public void PlaceBid(Player player, int bid)
+        public void PlaceBid(Seat player, int bid)
         {
             int playersBid = Bids[player.Position];
             int minBid = CurrentBid + 1;

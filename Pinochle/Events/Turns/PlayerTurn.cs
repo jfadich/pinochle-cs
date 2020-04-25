@@ -4,13 +4,13 @@ using System.Text;
 
 namespace Pinochle.Events.Turns
 {
-    abstract class PlayerTurn
+    public abstract class PlayerTurn
     {
-        public Player Player { get; protected set; }
+        public Seat Player { get; protected set; }
 
         public string Message;
 
-        public PlayerTurn(Player player, string message)
+        public PlayerTurn(Seat player, string message)
         {
             Player = player;
             Message = message;

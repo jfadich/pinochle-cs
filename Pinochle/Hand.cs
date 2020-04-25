@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Pinochle
 {
-    class Hand
+    public class Hand
     {
         public List<PinochleCard> Cards { get; }
         public PinochleCard[] DealtCards { get; }

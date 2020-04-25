@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Pinochle.Cards
 {
-    class Card : IComparable<Card>
+    public class Card : IComparable<Card>
     {
         public enum Ranks : byte {
             Joker   = 0b00_00_0000,

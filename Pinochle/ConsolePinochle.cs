@@ -129,7 +129,7 @@ namespace Pinochle
 
         public void ShowMeld()
         {
-            foreach(Player player in Game.Players)
+            foreach(Seat player in Game.AllPlayers())
             {
 
                 List<Meld>  meld = Game.GetPlayerMeld(player);

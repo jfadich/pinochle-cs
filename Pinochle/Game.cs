@@ -7,17 +7,17 @@ using System.Linq;
 
 namespace Pinochle
 {
-    class Game
+    public class Game
     {
         public event Action<PlayerTurn> TurnTaken;
         public event Action<PhaseCompleted> PhaseCompleted;
-        private readonly List<Round> _rounds = new List<Round>();
+        private readonly LinkedList<Round> rounds = new LinkedList<Round>();
 
-        public Player[] Players;
+        private Seat[] Players;
 
         private Round CurrentRound;
 
-        public Player ActivePlayer { get { return Players[activePosition]; } }
+        public Seat ActivePlayer { get { return Players[activePosition]; } }
 
         public int StartingPosition
         {
@@ -28,22 +28,31 @@ namespace Pinochle
 
         private int activePosition;
 
+        public bool HasStarted;
+
         public bool IsCompleted;
 
         public const int NumberOfPlayers = 4;
+
+        public Game()
+        {
+            Players = new Seat[NumberOfPlayers];
+            HasStarted = false;
+            IsCompleted = false;
+        }
 
         public void StartGame(int startingPosition = 0)
         {
             StartingPosition = startingPosition;
             activePosition = StartingPosition;
 
-            Players = new Player[NumberOfPlayers];
 
             for(int i = 0;  i < NumberOfPlayers; i++)
             {
-                Players[i] = new Player(i);
+                Players[i] = new Seat(i);
             }
 
+            HasStarted = true;
             StartRound();
         }
 
@@ -51,12 +60,17 @@ namespace Pinochle
 
         public Round.Phases CurrentPhase() => (CurrentRound.Phase);
 
-        public Hand GetPlayerHand(Player player)
+        public Hand GetPlayerHand(Seat player)
         {
             return CurrentRound.PlayerHand(player);
         }
 
-        public List<Meld> GetPlayerMeld(Player player)
+        public Seat[] AllPlayers()
+        {
+            return Players;
+        }
+
+        public List<Meld> GetPlayerMeld(Seat player)
         {
             return CurrentRound.MeldScore[player.Position];
         }
@@ -133,7 +147,7 @@ namespace Pinochle
 
         public void PassCardsToLeader(PinochleCard[] cards)
         {
-            Player partner = Players[GetNexPosition(1)];
+            Seat partner = Players[GetNexPosition(1)];
 
             TurnTaken?.Invoke(new PassedCards(ActivePlayer, partner, cards));
 
@@ -146,7 +160,7 @@ namespace Pinochle
 
         public void PassCardsBack(PinochleCard[] cards)
         {
-            Player partner = Players[GetNexPosition(1)];
+            Seat partner = Players[GetNexPosition(1)];
 
             GetPlayerHand().TakeCards(cards);
 
@@ -163,7 +177,7 @@ namespace Pinochle
 
         private void CalculateMeld()
         {
-            foreach (Player player in Players)
+            foreach (Seat player in Players)
             {
                 CurrentRound.CalculateMeld(player);
             }
@@ -204,7 +218,7 @@ namespace Pinochle
         public void CompleteRound()
         {
             CurrentRound.CalculateTeamScore();
-            _rounds.Add(CurrentRound);
+            rounds.Append(CurrentRound);
 
             // Emit Round Complete
 
@@ -224,13 +238,13 @@ namespace Pinochle
         {
             int[] scores = new int[4];
 
-            scores[0] = _rounds.Sum(round => round.TeamScore[0]);
-            scores[1] = _rounds.Sum(round => round.TeamScore[1]);
+            scores[0] = rounds.Sum(round => round.TeamScore[0]);
+            scores[1] = rounds.Sum(round => round.TeamScore[1]);
 
             return scores;
         }
 
-        public Player PlayerAtPosition(int position)
+        public Seat PlayerAtPosition(int position)
         {
             if(!ValidPosition(position))
             {

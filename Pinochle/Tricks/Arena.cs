@@ -6,11 +6,11 @@ using Pinochle.Exceptions;
 
 namespace Pinochle.Tricks
 {
-    class Arena
+    public class Arena
     {
         Card.Suits Trump;
 
-        Player Leader;
+        Seat Leader;
 
         List<Trick> Tricks;
 
@@ -18,7 +18,7 @@ namespace Pinochle.Tricks
 
         public Boolean IsPlaying = true;
 
-        public Arena(Card.Suits trump, Player leader)
+        public Arena(Card.Suits trump, Seat leader)
         {
             Trump = trump;
             Leader = leader;
@@ -31,7 +31,7 @@ namespace Pinochle.Tricks
             ActiveTrick = new Trick(Leader, card);
         }
 
-        public void PlayTrick(Player player , PinochleCard play)
+        public void PlayTrick(Seat player , PinochleCard play)
         {
             if(ActiveTrick == null || ActiveTrick.IsCompleted)
             {

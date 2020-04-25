@@ -7,7 +7,7 @@ namespace Pinochle.Events.Turns
     class AuctionOpened : BidPlaced
     {
         new public bool IsOpen = true;
-        public AuctionOpened(Player player, int bid) : base(player, bid) {
+        public AuctionOpened(Seat player, int bid) : base(player, bid) {
             Message = String.Format("{0} opened with {1}", Player, Bid);
         }
     }

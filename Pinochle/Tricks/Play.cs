@@ -4,13 +4,13 @@ using Pinochle.Cards;
 
 namespace Pinochle.Tricks
 {
-    class Play
+    public class Play
     {
-        public Player Position;
+        public Seat Position;
 
         public PinochleCard Card;
 
-        public Play(Player player, PinochleCard card)
+        public Play(Seat player, PinochleCard card)
         {
             Position = player;
             Card = card;

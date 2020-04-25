@@ -9,10 +9,11 @@ namespace Pinochle
     {
         static void Main(string[] args)
         {
-            Console.ReadLine();
             ConsolePinochle pinochle = new ConsolePinochle();
 
             pinochle.Play();
+            Console.ReadLine();
+
 
             //Server.Server server = new Server.Server();
 

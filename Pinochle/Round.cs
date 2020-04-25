@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Pinochle
 {
-    class Round
+    public class Round
     {
         public enum Phases
         {
@@ -18,13 +18,13 @@ namespace Pinochle
             Complete
         }
 
-        public Card.Suits Trump { get; protected set; }
+        public PinochleCard.Suits Trump { get; protected set; }
 
         public Phases Phase { get; protected set; } = Phases.Dealing;
 
-        public Player Dealer { get; private set; }
+        public Seat Dealer { get; private set; }
 
-        public Player Leader { get; private set; }
+        public Seat Leader { get; private set; }
 
         public int[] TeamScore = new int[2] { 0,0};
 
@@ -43,7 +43,7 @@ namespace Pinochle
             MeldScore = new List<Meld>[4];
         }
 
-        public void Deal(Player dealer)
+        public void Deal(Seat dealer)
         {
             PinochleDeck deck = PinochleDeck.Make();
             Dealer = dealer;
@@ -54,12 +54,12 @@ namespace Pinochle
             AdvancePhase();
         }
 
-        public Hand PlayerHand(Player player)
+        public Hand PlayerHand(Seat player)
         {
             return Hands[player.Position];
         }
 
-        public void CallTrump(Player player, Card.Suits trump)
+        public void CallTrump(Seat player, PinochleCard.Suits trump)
         {
             if(Auction.WinningPosition != player.Position)
             {
@@ -72,7 +72,7 @@ namespace Pinochle
             AdvancePhase();
         }
 
-        public void CalculateMeld(Player player)
+        public void CalculateMeld(Seat player)
         {
             HandEvaluator eval = new HandEvaluator(PlayerHand(player), Trump);
 
@@ -84,7 +84,7 @@ namespace Pinochle
             Arena = new Arena(Trump, Leader);
         }
 
-        public void PlayTrick(Player player, PinochleCard play)
+        public void PlayTrick(Seat player, PinochleCard play)
         {
             if (Phase != Phases.Playing || Arena == null || !Arena.IsPlaying)
             {

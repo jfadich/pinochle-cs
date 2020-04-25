@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Pinochle.Cards
 {
-    class Deck
+    public class Deck
     {
         private Random random = new Random();
 

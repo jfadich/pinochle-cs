@@ -10,7 +10,7 @@ namespace Pinochle.Server
 {
     class Server
     {
-        List<GameTable> tables = new List<GameTable>();
+        List<GameTable> tables = new List<GameTable>(); // user hash map
 
         public Server()
         {

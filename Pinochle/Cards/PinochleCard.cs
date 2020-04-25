@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Pinochle.Cards
 {
-    class PinochleCard : Card, IComparable<PinochleCard>
+    public class PinochleCard : Card, IComparable<PinochleCard>
     {
         new public enum Ranks : byte
         {

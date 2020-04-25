@@ -8,7 +8,7 @@ namespace Pinochle.Events.Turns
     {
         public Cards.PinochleCard.Suits Trump { get; protected set; }
 
-        public TrumpCalled(Player player, Cards.PinochleCard.Suits trump) : base(player, String.Format("{0} called {1} for trump", player, trump))
+        public TrumpCalled(Seat player, Cards.PinochleCard.Suits trump) : base(player, String.Format("{0} called {1} for trump", player, trump))
         {
             Trump = trump;
         }
