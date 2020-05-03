@@ -1,12 +1,12 @@
 ﻿
 using System;
 
-namespace Pinochle.Events.Phases
+namespace Pinochle.Events.CompletedPhases
 {
-    class DealingCompleted : Events.PhaseCompleted
+    public class DealingCompleted : PhaseCompleted
     {
         Seat Dealer;
-        public DealingCompleted(Seat dealer) : base(Round.Phases.Dealing, Round.Phases.Bidding) 
+        public DealingCompleted(Seat dealer) : base(Phases.Dealing, Phases.Bidding) 
         {
             Dealer = dealer;
         }

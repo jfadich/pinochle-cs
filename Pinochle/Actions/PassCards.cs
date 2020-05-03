@@ -1,22 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using Pinochle.Contracts;
 using Pinochle.Cards;
 
 namespace Pinochle.Actions
 {
-    class PassCards : PlayerAction
+    public class PassCards : PlayerAction
     {
         public PinochleCard[] Cards { get; }
 
         public Seat ToSeat { get; }
 
-        public PassCards(Seat seat, PinochleCard[] cards) : base(seat, Round.Phases.Passing) 
+        public PassCards(Seat seat, PinochleCard[] cards) : base(seat, Phases.Passing) 
         {
             Cards = cards;
             ToSeat = Seat.PartnerSeat();
         }
-        public override bool Apply(Round round)
+        public override bool Apply(IGameRound round)
         {
             round.PassCards(Seat, ToSeat, Cards);
 

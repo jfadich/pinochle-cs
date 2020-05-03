@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Pinochle
 {
-    public class Auction
+    class Auction
     {
         public int[] Bids;
 

@@ -56,7 +56,7 @@ namespace PinochleServer.RealTime
             if (room != null && Int32.TryParse(Context.User.FindFirst("position")?.Value, out int position))
             {
                 Groups.AddToGroupAsync(Context.ConnectionId, room + ":position:" + position);
-                return Groups.AddToGroupAsync(Context.ConnectionId, room + ":team:" + new Seat(position).TeamId);
+                return Groups.AddToGroupAsync(Context.ConnectionId, room + ":team:" + Seat.ForPosition(position).TeamId);
             }
 
             return null;

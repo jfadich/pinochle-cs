@@ -3,22 +3,12 @@ using System.Collections.Generic;
 using Pinochle.Tricks;
 using Pinochle.Cards;
 using System.Linq;
-using Pinochle.Events;
+using Pinochle.Contracts;
 
 namespace Pinochle
 {
-    public class Round
+    class Round : IGameRound
     {
-        public enum Phases
-        {
-            Dealing,
-            Bidding,
-            Calling,
-            Passing,
-            Playing,
-            Complete
-        }
-
         public PinochleCard.Suits Trump { get; protected set; }
 
         public Phases Phase { get; protected set; } = Phases.Dealing;
@@ -37,7 +27,7 @@ namespace Pinochle
 
         public Arena Arena;
 
-        public Hand[] Hands { get; protected set; }
+        public IHand[] Hands { get; private set; }
 
         public Round()
         {
@@ -49,7 +39,7 @@ namespace Pinochle
             PinochleDeck deck = PinochleDeck.Make();
             Dealer = dealer;
 
-            Hands = deck.Shuffle().Deal(Game.NumberOfPlayers);
+            Hands = (Hand[])deck.Shuffle().Deal(Game.NumberOfPlayers);
 
             Auction = new Auction();
             AdvancePhase();
@@ -57,7 +47,7 @@ namespace Pinochle
 
         public Hand PlayerHand(Seat player)
         {
-            return Hands[player.Position];
+            return (Hand)Hands[player.Position];
         }
 
         public void CallTrump(Seat player, PinochleCard.Suits trump)
@@ -103,12 +93,17 @@ namespace Pinochle
             MeldScore[player.Position] = eval.GetMeld();
         }
 
+        public void OpenAuction(Seat player)
+        {
+
+        }
+
         public void OpenArena()
         {
             Arena = new Arena(Trump, Leader.Seat);
         }
 
-        public void PlayTrick(Seat player, PinochleCard play)
+        public Trick PlayTrick(Seat player, PinochleCard play)
         {
             if (Phase != Phases.Playing || Arena == null || !Arena.IsPlaying)
             {
@@ -124,6 +119,8 @@ namespace Pinochle
             {
                 AdvancePhase();
             }
+
+            return Arena.ActiveTrick;
         }
 
         public int[] CalculateTeamScore()

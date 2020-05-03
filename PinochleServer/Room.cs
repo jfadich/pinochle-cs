@@ -11,18 +11,26 @@ namespace PinochleServer
     {
         public string Status { get; private set; }
 
+        public enum Statuses
+        {
+            Matchmaking,
+            Playing,
+            Closed
+        }
+
         public string Id { get; }
 
         public Player[] Players { get; }
 
-        public Game Game { get; private set; }
+        public Pinochle.Contracts.IPinochleGame Game { get; }
 
         public bool IsPrivate { get; private set; }
 
         public Room(string id)
         {
+            Game = GameFactory.Make();
             Id = id;
-            Players = new Player[Game.NumberOfPlayers];
+            Players = new Player[Game.PlayerCount];
             Status = "Seating";
         }
         public void MakePrivate()
@@ -87,8 +95,8 @@ namespace PinochleServer
         {
             Status = "Active";
 
-            Game = new Game();
             Game.StartGame();
+
             return true;
         }
     }

@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Pinochle;
 
 namespace Pinochle.Events
 {
-    class AdvancedPhase : GameEvent
+    public class AdvancedPhase : GameEvent
     {
-        public Round.Phases Previous { get; }
-        public Round.Phases Current { get; }
+        public Phases Previous { get; }
+        public Phases Current { get; }
 
-        public AdvancedPhase(Round.Phases previous, Round.Phases current)
+        public AdvancedPhase(Phases previous, Phases current)
         {
             Previous = previous;
             Current = current;

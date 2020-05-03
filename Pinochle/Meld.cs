@@ -5,7 +5,7 @@ using Pinochle.Cards;
 
 namespace Pinochle
 {
-    public class Meld
+    class Meld
     {
         private int Value;
 
@@ -34,7 +34,7 @@ namespace Pinochle
             return doubled.ToArray();
         }
 
-        public int GetHashCode()
+        public override int GetHashCode()
         {
             int code = 0;
 

@@ -6,7 +6,7 @@ using Pinochle.Exceptions;
 
 namespace Pinochle.Tricks
 {
-    public class Arena
+    class Arena
     {
         Card.Suits Trump;
 

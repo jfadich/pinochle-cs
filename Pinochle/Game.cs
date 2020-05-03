@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Pinochle.Cards;
-using Pinochle.Events.Phases;
-using System.Linq;
+using Pinochle.Events.CompletedPhases;
 using Pinochle.Actions;
 
 namespace Pinochle
@@ -10,7 +9,6 @@ namespace Pinochle
     class Game : Contracts.IPinochleGame
     {
         private event Action<Events.GameEvent> GameEvents;
-        private readonly LinkedList<Round> rounds = new LinkedList<Round>(); // @todo remove this, let clients track if they need
 
         private Seat[] Players;
 
@@ -18,9 +16,9 @@ namespace Pinochle
 
         public GameScore Score;
 
-        public Seat ActivePlayer { 
-            get { return Players[activePosition]; } 
-            private set { activePosition = value.Position; } 
+        public Seat ActivePlayer {
+            get { return Players[activePosition]; }
+            private set { activePosition = value.Position; }
         }
 
         public void AddGameListener(Action<Events.GameEvent> listener)
@@ -41,6 +39,8 @@ namespace Pinochle
         public bool HasStarted;
 
         public bool IsCompleted;
+
+        public int PlayerCount { get => NumberOfPlayers; }
 
         public const int NumberOfPlayers = 4;
 
@@ -102,18 +102,18 @@ namespace Pinochle
 
         private void AdvancePlayer()
         {
-            if (IsCurrently(Round.Phases.Bidding))
+            if (IsCurrently(Phases.Bidding))
             {
                 do
                 {
                     SetNextPlayer();
                 } while (CurrentRound.Auction.PlayerHasPassed(ActivePlayer));
             }
-            else if (IsCurrently(Round.Phases.Calling) || IsCurrently(Round.Phases.Passing))
+            else if (IsCurrently(Phases.Calling) || IsCurrently(Phases.Passing))
             {
                 SetNextPlayer(1);
             } 
-            else if (IsCurrently(Round.Phases.Playing)) 
+            else if (IsCurrently(Phases.Playing)) 
             {
                 if(CurrentRound.Arena != null)
                 {
@@ -136,24 +136,24 @@ namespace Pinochle
 
         private void CompletePhase(PlayerAction action)
         {
-            Round.Phases completedPhase = action.Phase;
+            Phases completedPhase = action.Phase;
 
-            if (completedPhase == Round.Phases.Dealing)
+            if (completedPhase == Phases.Dealing)
             {
                 GameEvents?.Invoke(new DealingCompleted(action.Seat));
             }
-            else if (completedPhase == Round.Phases.Bidding)
+            else if (completedPhase == Phases.Bidding)
             {
                 GameEvents?.Invoke(new BiddingCompleted(Players[CurrentRound.Auction.WinningPosition], CurrentRound.Auction.WinningBid));
 
                 ActivePlayer = Players[CurrentRound.Auction.WinningPosition];
             }
-            else if(completedPhase == Round.Phases.Calling)
+            else if(completedPhase == Phases.Calling)
             {
                 GameEvents?.Invoke(new CallingCompleted(Players[CurrentRound.Auction.WinningPosition], CurrentRound.Trump));
 
             }
-            else if(completedPhase == Round.Phases.Passing)
+            else if(completedPhase == Phases.Passing)
             {
                 CalculateMeld();
 
@@ -163,7 +163,7 @@ namespace Pinochle
 
                 ActivePlayer = CurrentRound.Leader.Seat;
             }
-            else if (completedPhase == Round.Phases.Playing)
+            else if (completedPhase == Phases.Playing)
             {
                 GameEvents?.Invoke(new PlayingCompleted()); // @todo pass meld in here
 
@@ -171,9 +171,9 @@ namespace Pinochle
             }
         }
 
-        public bool IsCurrently(Round.Phases phase) => (CurrentRound.Phase == phase);
+        public bool IsCurrently(Phases phase) => (CurrentRound.Phase == phase);
 
-        public Round.Phases CurrentPhase() => (CurrentRound.Phase);
+        public Phases CurrentPhase() => (CurrentRound.Phase);
 
         public Hand GetPlayerHand(Seat player)
         {

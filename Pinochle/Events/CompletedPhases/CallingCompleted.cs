@@ -2,15 +2,15 @@
 using System;
 using Pinochle.Cards;
 
-namespace Pinochle.Events.Phases
+namespace Pinochle.Events.CompletedPhases
 {
-    class CallingCompleted : PhaseCompleted
+    public class CallingCompleted : PhaseCompleted
     {
         public Seat Leader;
 
         PinochleCard.Suits Trump;
 
-        public CallingCompleted(Seat leader, PinochleCard.Suits trump) : base(Round.Phases.Calling, Round.Phases.Passing) {
+        public CallingCompleted(Seat leader, PinochleCard.Suits trump) : base(Phases.Calling, Phases.Passing) {
             Leader = leader;
             Trump = trump;
         }

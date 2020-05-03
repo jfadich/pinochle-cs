@@ -113,7 +113,7 @@ namespace PinochleServer
             return AddPlayerToRoom(roomId, new Player()
             {
                 Id = playerId,
-                Seat = new Seat(position)
+                Seat = Seat.ForPosition(position)
             });
         }
         public bool AddPlayerToRoom(string lobbyId, string playerId, int? position)
@@ -126,7 +126,7 @@ namespace PinochleServer
             return AddPlayerToRoom(lobbyId, new Player()
             {
                 Id = playerId,
-                Seat = new Seat((int)position)
+                Seat = Seat.ForPosition((int)position)
             }); ;
         }
 

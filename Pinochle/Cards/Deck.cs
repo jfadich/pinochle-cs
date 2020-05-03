@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using Pinochle.Contracts;
 
 namespace Pinochle.Cards
 {
@@ -55,12 +55,12 @@ namespace Pinochle.Cards
             return card;
         }
 
-        public Hand[] Deal(int numberOfHands)
+        public IHand[] Deal(int numberOfHands)
         {
             return Deal(numberOfHands, (Cards.Count - (Cards.Count % numberOfHands)) / numberOfHands);
         }
 
-        public Hand[] Deal(int numberOfHands, int perHand)
+        public IHand[] Deal(int numberOfHands, int perHand)
         {
             int dealCount = numberOfHands * perHand;
 

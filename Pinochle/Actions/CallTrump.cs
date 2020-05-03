@@ -1,19 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using Pinochle.Cards;
+using Pinochle.Contracts;
 
 namespace Pinochle.Actions
 {
-    class CallTrump : PlayerAction
+    public class CallTrump : PlayerAction
     {
         public PinochleCard.Suits Trump { get; }
 
-        public CallTrump(Seat seat, PinochleCard.Suits trump) : base(seat, Round.Phases.Calling)
+        public CallTrump(Seat seat, PinochleCard.Suits trump) : base(seat, Phases.Calling)
         {
             Trump = trump;
         }
-        public override bool Apply(Round round)
+        public override bool Apply(IGameRound round)
         {
             round.CallTrump(Seat, Trump);
 

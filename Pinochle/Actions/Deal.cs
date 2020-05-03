@@ -1,15 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Pinochle.Contracts;
 
 namespace Pinochle.Actions
 {
-    class Deal : PlayerAction
+    public class Deal : PlayerAction
     {
-        public Hand[] Hands { get; private set; }
+        public IHand[] Hands { get; private set; }
 
-        public Deal(Seat seat) : base(seat, Round.Phases.Dealing) { }
-        public override bool Apply(Round round)
+        public Deal(Seat seat) : base(seat, Phases.Dealing) { }
+        public override bool Apply(IGameRound round)
         {
             round.Deal(Seat);
 

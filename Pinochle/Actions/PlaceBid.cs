@@ -1,18 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using Pinochle.Contracts;
 
 namespace Pinochle.Actions
 {
-    class PlaceBid : PlayerAction
+    public class PlaceBid : PlayerAction
     {
         public int Bid { get; }
 
-        public PlaceBid(Seat seat, int bid) : base(seat, Round.Phases.Bidding)
+        public PlaceBid(Seat seat, int bid) : base(seat, Phases.Bidding)
         {
             Bid = bid;
         }
-        public override bool Apply(Round round)
+        public override bool Apply(IGameRound round)
         {
             round.PlaceBid(Seat, Bid);
 

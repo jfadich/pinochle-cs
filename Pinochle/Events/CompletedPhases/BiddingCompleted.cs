@@ -1,14 +1,14 @@
 ﻿using System;
 
-namespace Pinochle.Events.Phases
+namespace Pinochle.Events.CompletedPhases
 {
-    class BiddingCompleted : Events.PhaseCompleted
+    public class BiddingCompleted : PhaseCompleted
     {
         public Seat Winner { get; }
 
         public int Bid { get; }
 
-        public BiddingCompleted(Seat winner, int bid) : base(Round.Phases.Bidding, Round.Phases.Calling) 
+        public BiddingCompleted(Seat winner, int bid) : base(Phases.Bidding, Phases.Calling) 
         {
             Winner = winner;
             Bid = bid;

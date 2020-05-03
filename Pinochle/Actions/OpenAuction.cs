@@ -1,17 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using Pinochle.Contracts;
 
 namespace Pinochle.Actions
 {
-    class OpenAuction : PlayerAction
+    public class OpenAuction : PlayerAction
     {
         public int Bid { get; }
 
-        public OpenAuction(Seat seat) : base(seat, Round.Phases.Bidding) { }
-        public override bool Apply(Round round)
+        public OpenAuction(Seat seat) : base(seat, Phases.Bidding) { }
+        public override bool Apply(IGameRound round)
         {
-            round.Auction.Open(Seat);
+            round.OpenAuction(Seat);
 
             return true;
         }

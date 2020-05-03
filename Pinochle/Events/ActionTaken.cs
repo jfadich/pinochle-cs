@@ -5,7 +5,7 @@ using Pinochle.Actions;
 
 namespace Pinochle.Events
 {
-    class ActionTaken : GameEvent
+    public class ActionTaken : GameEvent
     {
         public PlayerAction Action { get; }
 

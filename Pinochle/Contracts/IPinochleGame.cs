@@ -1,19 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using Pinochle.Actions;
 
 namespace Pinochle.Contracts
 {
     public interface IPinochleGame
     {
-        public static int NumberOfPlayers;
-        static IPinochleGame Make()
-        {
-            return new Game();
-        }
+        public int PlayerCount { get; }
 
-        void AddGameListener(Action<Events.GameEvent> listener);
+        public void AddGameListener(Action<Events.GameEvent> listener);
+
+        void StartGame(int startingPosition = 0);
 
         public void TakeAction(PlayerAction action);
     }

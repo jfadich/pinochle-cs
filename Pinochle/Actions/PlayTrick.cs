@@ -1,24 +1,22 @@
 ﻿using System;
-using System.Collections.Generic;
+using Pinochle.Contracts;
 using Pinochle.Cards;
 
 namespace Pinochle.Actions
 {
-    class PlayTrick : PlayerAction
+    public class PlayTrick : PlayerAction
     {
         public PinochleCard Play;
 
         public Tricks.Trick CurrentTrick { get; private set; }
-        public PlayTrick(Seat player, PinochleCard play) : base(player, Round.Phases.Playing) 
+        public PlayTrick(Seat player, PinochleCard play) : base(player, Phases.Playing) 
         {
             Play = play;
         }
 
-        public override bool Apply(Round round)
+        public override bool Apply(IGameRound round)
         {
-            round.PlayTrick(Seat, Play);
-
-            CurrentTrick = round.Arena.ActiveTrick;
+            CurrentTrick = round.PlayTrick(Seat, Play);
 
             return true;
         }

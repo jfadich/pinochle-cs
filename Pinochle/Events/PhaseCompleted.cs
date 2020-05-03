@@ -5,13 +5,13 @@ using Pinochle.Actions;
 
 namespace Pinochle.Events
 {
-    class PhaseCompleted : GameEvent
+    public class PhaseCompleted : GameEvent
     {
-        public Round.Phases Phase { get; }
+        public Phases Phase { get; }
 
-        public Round.Phases Next { get; }
+        public Phases Next { get; }
 
-        public PhaseCompleted(Round.Phases phase, Round.Phases nextPhase)
+        public PhaseCompleted(Phases phase, Phases nextPhase)
         {
             Phase = phase;
             Next = nextPhase;

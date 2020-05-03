@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using Pinochle.Cards;
 using System.Linq;
+using Pinochle.Contracts;
 
 namespace Pinochle
 {
-    public class Hand
+    class Hand : IHand
     {
         public List<PinochleCard> Cards { get; }
         public PinochleCard[] DealtCards { get; }

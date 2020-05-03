@@ -10,7 +10,7 @@ namespace Pinochle
 {
     class ConsolePinochle
     {
-        public Dictionary<Round.Phases, List<ActionTaken>> Turns;
+        public Dictionary<Phases, List<ActionTaken>> Turns;
         public List<PhaseCompleted> Phases;
 
         private Tricks.Trick CurrentTrick;
@@ -21,10 +21,10 @@ namespace Pinochle
         {
             Console.OutputEncoding = Encoding.UTF8;
             Game = new Game();
-            Turns = new Dictionary<Round.Phases, List<ActionTaken>>();
+            Turns = new Dictionary<Phases, List<ActionTaken>>();
             Phases = new List<PhaseCompleted>();
             
-            foreach(Round.Phases phase in Enum.GetValues(typeof(Round.Phases)))
+            foreach(Phases phase in Enum.GetValues(typeof(Phases)))
             {
                 Turns.Add(phase, new List<ActionTaken>());
             }
@@ -49,7 +49,7 @@ namespace Pinochle
 
         protected void Auction()
         {
-            while (Game.IsCurrently(Round.Phases.Bidding))
+            while (Game.IsCurrently(Pinochle.Phases.Bidding))
             {
                 DrawHand();
                 Console.Write(String.Format("What does {0} bid? ", Game.ActivePlayer));
@@ -73,7 +73,7 @@ namespace Pinochle
                 {
                     Console.WriteLine(exception.Message);
                 }
-                catch (FormatException exception)
+                catch (FormatException)
                 {
                     Console.WriteLine("Please enter bid as a number");
                 }
@@ -155,7 +155,7 @@ namespace Pinochle
             Game.TakeAction(new PlayTrick(Game.ActivePlayer, trick));
             Draw();
 
-            while(Game.IsCurrently(Round.Phases.Playing))
+            while(Game.IsCurrently(Pinochle.Phases.Playing))
             {
 
                 trick = AskForACard(" Play a trick.");
@@ -196,7 +196,7 @@ namespace Pinochle
                     Console.ForegroundColor = ConsoleColor.White;
                 }
 
-                if (Game.IsCurrently(Round.Phases.Playing))
+                if (Game.IsCurrently(Pinochle.Phases.Playing))
                 {
                     canPlay = Game.CanPlay(card);
 
@@ -248,7 +248,7 @@ namespace Pinochle
                             inputValid = true;
                         }
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                         inputValid = false;
                     }
@@ -291,13 +291,13 @@ namespace Pinochle
             Console.Write("Phase " + Game.CurrentPhase());
             Console.Write(" | Current Player: " + Game.ActivePlayer);
             Console.Write(string.Format(" | Team A: {0}", score.TeamA));
-            if(Game.CurrentPhase() == Round.Phases.Playing)
+            if(Game.CurrentPhase() == Pinochle.Phases.Playing)
             {
                 Console.Write(string.Format(" (+{0})", roundScore.TeamA));
             }
             Console.Write(string.Format(" | Team B: {0}", score.TeamB));
 
-            if (Game.CurrentPhase() == Round.Phases.Playing)
+            if (Game.CurrentPhase() == Pinochle.Phases.Playing)
             {
                 Console.Write(string.Format(" (+{0})", roundScore.TeamB));
             }
@@ -311,7 +311,7 @@ namespace Pinochle
 
             Console.WriteLine("----------------------------------------------------------------------------------");
 
-            if(Game.IsCurrently(Round.Phases.Playing))
+            if(Game.IsCurrently(Pinochle.Phases.Playing))
             {
                 if(CurrentTrick != null)
                 {
@@ -354,9 +354,9 @@ namespace Pinochle
 
             if(gameEvent is PhaseCompleted completed)
             {
-                if(completed is Events.Phases.PlayingCompleted)
+                if(completed is Events.CompletedPhases.PlayingCompleted)
                 {
-                    foreach (Round.Phases phase in Enum.GetValues(typeof(Round.Phases)))
+                    foreach (Phases phase in Enum.GetValues(typeof(Phases)))
                     {
                         Turns[phase].Clear();
                     }
