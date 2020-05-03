@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Pinochle;
-using PinochleServer.Models;
+using JFadich.Pinochle.Engine;
+using JFadich.Pinochle.Server.Models;
 using Microsoft.AspNetCore.SignalR;
 using System.Collections.Concurrent;
-using PinochleServer.RealTime;
+using JFadich.Pinochle.Server.RealTime;
 
-namespace PinochleServer
+namespace JFadich.Pinochle.Server
 {
     public class GameManager
     {

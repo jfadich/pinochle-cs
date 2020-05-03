@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using Pinochle.Tricks;
-using Pinochle.Cards;
+using JFadich.Pinochle.Engine.Tricks;
+using JFadich.Pinochle.Engine.Cards;
 using System.Linq;
-using Pinochle.Contracts;
+using JFadich.Pinochle.Engine.Contracts;
 
-namespace Pinochle
+namespace JFadich.Pinochle.Engine
 {
     class Round : IGameRound
     {

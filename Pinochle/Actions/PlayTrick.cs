@@ -1,8 +1,8 @@
 ﻿using System;
-using Pinochle.Contracts;
-using Pinochle.Cards;
+using JFadich.Pinochle.Engine.Contracts;
+using JFadich.Pinochle.Engine.Cards;
 
-namespace Pinochle.Actions
+namespace JFadich.Pinochle.Engine.Actions
 {
     public class PlayTrick : PlayerAction
     {

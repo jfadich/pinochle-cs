@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Pinochle.Cards;
+using JFadich.Pinochle.Engine.Cards;
 using System.Linq;
-using Pinochle.Tricks;
+using JFadich.Pinochle.Engine.Tricks;
 
-namespace Pinochle
+namespace JFadich.Pinochle.Engine
 {
     class HandEvaluator
     {

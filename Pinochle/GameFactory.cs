@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Pinochle.Contracts;
+using JFadich.Pinochle.Engine.Contracts;
 
-namespace Pinochle
+namespace JFadich.Pinochle.Engine
 {
     public class GameFactory
     {

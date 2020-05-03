@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Pinochle;
+using JFadich.Pinochle.Engine;
 
-namespace PinochleServer.Models
+namespace JFadich.Pinochle.Server.Models
 {
     public class Lobby
     {

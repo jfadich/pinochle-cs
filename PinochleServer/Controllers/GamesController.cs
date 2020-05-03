@@ -4,12 +4,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Pinochle;
-using PinochleServer.Models;
+using JFadich.Pinochle.Engine;
+using JFadich.Pinochle.Server.Models;
 using Microsoft.AspNetCore.Authorization;
-using PinochleServer.Requests;
+using JFadich.Pinochle.Server.Requests;
 
-namespace PinochleServer.Controllers
+namespace JFadich.Pinochle.Server.Controllers
 {
     [ApiController]
     [Route("[controller]")]

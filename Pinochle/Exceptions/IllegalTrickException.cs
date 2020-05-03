@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Pinochle.Exceptions
+namespace JFadich.Pinochle.Engine.Exceptions
 {
     class IllegalTrickException : PinochleRuleViolationException
     {

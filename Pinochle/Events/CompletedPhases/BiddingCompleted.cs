@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Pinochle.Events.CompletedPhases
+namespace JFadich.Pinochle.Engine.Events.CompletedPhases
 {
     public class BiddingCompleted : PhaseCompleted
     {

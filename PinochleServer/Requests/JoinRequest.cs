@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace PinochleServer.Requests
+namespace JFadich.Pinochle.Server.Requests
 {
     public class JoinRequest
     {

@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Pinochle;
-using PinochleServer.Models;
+using JFadich.Pinochle.Engine;
+using JFadich.Pinochle.Engine.Contracts;
+using JFadich.Pinochle.Server.Models;
 
-namespace PinochleServer
+namespace JFadich.Pinochle.Server
 {
     public class Room
     {
@@ -22,7 +23,7 @@ namespace PinochleServer
 
         public Player[] Players { get; }
 
-        public Pinochle.Contracts.IPinochleGame Game { get; }
+        public IPinochleGame Game { get; }
 
         public bool IsPrivate { get; private set; }
 

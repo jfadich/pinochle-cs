@@ -1,7 +1,7 @@
 ﻿using System;
-using Pinochle.Cards;
+using JFadich.Pinochle.Engine.Cards;
 
-namespace Pinochle.Contracts
+namespace JFadich.Pinochle.Engine.Contracts
 {
     public interface IHand
     {

@@ -4,9 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Pinochle;
+using JFadich.Pinochle.Engine;
 
-namespace PinochleServer.Converters
+namespace JFadich.Pinochle.Server.Converters
 {
     public class SeatConverter : JsonConverter<Seat>
     {

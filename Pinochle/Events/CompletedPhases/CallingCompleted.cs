@@ -1,8 +1,8 @@
 ﻿
 using System;
-using Pinochle.Cards;
+using JFadich.Pinochle.Engine.Cards;
 
-namespace Pinochle.Events.CompletedPhases
+namespace JFadich.Pinochle.Engine.Events.CompletedPhases
 {
     public class CallingCompleted : PhaseCompleted
     {

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Pinochle
+namespace JFadich.Pinochle.Engine
 {
     class Auction
     {

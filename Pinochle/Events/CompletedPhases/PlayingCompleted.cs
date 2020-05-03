@@ -1,8 +1,8 @@
 ﻿
-using Pinochle.Tricks;
+using JFadich.Pinochle.Engine.Tricks;
 using System;
 
-namespace Pinochle.Events.CompletedPhases
+namespace JFadich.Pinochle.Engine.Events.CompletedPhases
 {
     public class PlayingCompleted : PhaseCompleted
     {

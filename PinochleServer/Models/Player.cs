@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Pinochle;
+using JFadich.Pinochle.Engine;
 using System.Text.Json.Serialization;
 
-namespace PinochleServer.Models
+namespace JFadich.Pinochle.Server.Models
 {
     public class Player
     {

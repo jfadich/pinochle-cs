@@ -1,6 +1,6 @@
-﻿using Pinochle.Contracts;
+﻿using JFadich.Pinochle.Engine.Contracts;
 
-namespace Pinochle.Actions
+namespace JFadich.Pinochle.Engine.Actions
 {
     public class Deal : PlayerAction
     {

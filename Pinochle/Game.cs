@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using Pinochle.Cards;
-using Pinochle.Events.CompletedPhases;
-using Pinochle.Actions;
+using JFadich.Pinochle.Engine.Cards;
+using JFadich.Pinochle.Engine.Events.CompletedPhases;
+using JFadich.Pinochle.Engine.Actions;
 
-namespace Pinochle
+namespace JFadich.Pinochle.Engine
 {
     class Game : Contracts.IPinochleGame
     {

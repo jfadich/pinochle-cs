@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Pinochle.Events
+namespace JFadich.Pinochle.Engine.Events
 {
     abstract public class GameEvent
     {

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using Pinochle.Contracts;
+using JFadich.Pinochle.Engine.Contracts;
 
-namespace Pinochle.Cards
+namespace JFadich.Pinochle.Engine.Cards
 {
     public class Deck
     {

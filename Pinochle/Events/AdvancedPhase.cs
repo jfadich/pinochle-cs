@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Pinochle;
+using JFadich.Pinochle.Engine;
 
-namespace Pinochle.Events
+namespace JFadich.Pinochle.Engine.Events
 {
     public class AdvancedPhase : GameEvent
     {

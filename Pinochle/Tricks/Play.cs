@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using Pinochle.Cards;
+using JFadich.Pinochle.Engine.Cards;
 
-namespace Pinochle.Tricks
+namespace JFadich.Pinochle.Engine.Tricks
 {
     public class Play
     {

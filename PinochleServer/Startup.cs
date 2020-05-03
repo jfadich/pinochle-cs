@@ -13,7 +13,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
-namespace PinochleServer
+namespace JFadich.Pinochle.Server
 {
     public class Startup
     {

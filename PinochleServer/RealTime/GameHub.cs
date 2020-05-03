@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
-using Pinochle;
+using JFadich.Pinochle.Engine;
 
-namespace PinochleServer.RealTime
+namespace JFadich.Pinochle.Server.RealTime
 {
     [Authorize]
     public class GameHub : Hub<IGameClient>

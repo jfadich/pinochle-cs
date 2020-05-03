@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Linq;
 
-namespace Pinochle
+namespace JFadich.Pinochle.Engine
 {
     class RoundScore
     {

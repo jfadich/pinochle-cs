@@ -1,7 +1,7 @@
 ﻿using System;
-using Pinochle.Actions;
+using JFadich.Pinochle.Engine.Actions;
 
-namespace Pinochle.Contracts
+namespace JFadich.Pinochle.Engine.Contracts
 {
     public interface IPinochleGame
     {

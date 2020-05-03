@@ -1,8 +1,8 @@
 ﻿using System;
-using Pinochle.Cards;
-using Pinochle.Contracts;
+using JFadich.Pinochle.Engine.Cards;
+using JFadich.Pinochle.Engine.Contracts;
 
-namespace Pinochle.Actions
+namespace JFadich.Pinochle.Engine.Actions
 {
     public class CallTrump : PlayerAction
     {

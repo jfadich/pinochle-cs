@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Pinochle.Actions;
+using JFadich.Pinochle.Engine.Actions;
 
-namespace Pinochle.Events
+namespace JFadich.Pinochle.Engine.Events
 {
     public class ActionTaken : GameEvent
     {

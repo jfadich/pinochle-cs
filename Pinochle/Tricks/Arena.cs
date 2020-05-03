@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using Pinochle.Cards;
+using JFadich.Pinochle.Engine.Cards;
 using System.Linq;
-using Pinochle.Exceptions;
+using JFadich.Pinochle.Engine.Exceptions;
 
-namespace Pinochle.Tricks
+namespace JFadich.Pinochle.Engine.Tricks
 {
     class Arena
     {

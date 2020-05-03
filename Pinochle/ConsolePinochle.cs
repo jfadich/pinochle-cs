@@ -2,16 +2,16 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
-using Pinochle.Actions;
-using Pinochle.Cards;
-using Pinochle.Events;
+using JFadich.Pinochle.Engine.Actions;
+using JFadich.Pinochle.Engine.Cards;
+using JFadich.Pinochle.Engine.Events;
 
-namespace Pinochle
+namespace JFadich.Pinochle.Engine
 {
     class ConsolePinochle
     {
         public Dictionary<Phases, List<ActionTaken>> Turns;
-        public List<PhaseCompleted> Phases;
+        public List<PhaseCompleted> CompletedPhases;
 
         private Tricks.Trick CurrentTrick;
 
@@ -22,7 +22,7 @@ namespace Pinochle
             Console.OutputEncoding = Encoding.UTF8;
             Game = new Game();
             Turns = new Dictionary<Phases, List<ActionTaken>>();
-            Phases = new List<PhaseCompleted>();
+            CompletedPhases = new List<PhaseCompleted>();
             
             foreach(Phases phase in Enum.GetValues(typeof(Phases)))
             {
@@ -49,7 +49,7 @@ namespace Pinochle
 
         protected void Auction()
         {
-            while (Game.IsCurrently(Pinochle.Phases.Bidding))
+            while (Game.IsCurrently(Phases.Bidding))
             {
                 DrawHand();
                 Console.Write(String.Format("What does {0} bid? ", Game.ActivePlayer));
@@ -155,7 +155,7 @@ namespace Pinochle
             Game.TakeAction(new PlayTrick(Game.ActivePlayer, trick));
             Draw();
 
-            while(Game.IsCurrently(Pinochle.Phases.Playing))
+            while(Game.IsCurrently(Phases.Playing))
             {
 
                 trick = AskForACard(" Play a trick.");
@@ -196,7 +196,7 @@ namespace Pinochle
                     Console.ForegroundColor = ConsoleColor.White;
                 }
 
-                if (Game.IsCurrently(Pinochle.Phases.Playing))
+                if (Game.IsCurrently(Phases.Playing))
                 {
                     canPlay = Game.CanPlay(card);
 
@@ -262,9 +262,9 @@ namespace Pinochle
         protected void DrawHand()
         {
             Console.ResetColor();
-            foreach (Cards.PinochleCard card in Game.GetPlayerHand().Cards)
+            foreach (PinochleCard card in Game.GetPlayerHand().Cards)
             {
-                if (card.getColor() == Cards.PinochleCard.Color.Red)
+                if (card.getColor() == PinochleCard.Color.Red)
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
                 }
@@ -291,27 +291,27 @@ namespace Pinochle
             Console.Write("Phase " + Game.CurrentPhase());
             Console.Write(" | Current Player: " + Game.ActivePlayer);
             Console.Write(string.Format(" | Team A: {0}", score.TeamA));
-            if(Game.CurrentPhase() == Pinochle.Phases.Playing)
+            if(Game.CurrentPhase() == Phases.Playing)
             {
                 Console.Write(string.Format(" (+{0})", roundScore.TeamA));
             }
             Console.Write(string.Format(" | Team B: {0}", score.TeamB));
 
-            if (Game.CurrentPhase() == Pinochle.Phases.Playing)
+            if (Game.CurrentPhase() == Phases.Playing)
             {
                 Console.Write(string.Format(" (+{0})", roundScore.TeamB));
             }
             Console.WriteLine();
             Console.WriteLine("----------------------------------------------------------------------------------");
 
-            foreach(PhaseCompleted phase in Phases)
+            foreach(PhaseCompleted phase in CompletedPhases)
             {
                 Console.WriteLine(phase);
             }
 
             Console.WriteLine("----------------------------------------------------------------------------------");
 
-            if(Game.IsCurrently(Pinochle.Phases.Playing))
+            if(Game.IsCurrently(Phases.Playing))
             {
                 if(CurrentTrick != null)
                 {
@@ -361,7 +361,7 @@ namespace Pinochle
                         Turns[phase].Clear();
                     }
                 }
-                Phases.Add(completed);
+                CompletedPhases.Add(completed);
             }
         }
     }
