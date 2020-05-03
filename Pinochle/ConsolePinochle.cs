@@ -1,16 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Pinochle.Events.Turns;
-using Pinochle.Events.Phases;
 using System.Linq;
+using Pinochle.Actions;
+using Pinochle.Cards;
+using Pinochle.Events;
 
 namespace Pinochle
 {
     class ConsolePinochle
     {
-        public Dictionary<Round.Phases, List<PlayerTurn>> Turns;
+        public Dictionary<Round.Phases, List<ActionTaken>> Turns;
         public List<PhaseCompleted> Phases;
+
+        private Tricks.Trick CurrentTrick;
 
         protected Game Game;
 
@@ -18,16 +21,15 @@ namespace Pinochle
         {
             Console.OutputEncoding = Encoding.UTF8;
             Game = new Game();
-            Turns = new Dictionary<Round.Phases, List<PlayerTurn>>();
+            Turns = new Dictionary<Round.Phases, List<ActionTaken>>();
             Phases = new List<PhaseCompleted>();
             
             foreach(Round.Phases phase in Enum.GetValues(typeof(Round.Phases)))
             {
-                Turns.Add(phase, new List<PlayerTurn>());
+                Turns.Add(phase, new List<ActionTaken>());
             }
 
-            Game.PhaseCompleted += onPhaseCompleted;
-            Game.TurnTaken += onTurnTaken;
+            Game.AddGameListener(OnGameEvent);
             Game.StartGame();
 
             while(!Game.IsCompleted)
@@ -57,12 +59,13 @@ namespace Pinochle
                 {
                     if (bid == "pass")
                     {
-                        Game.PassBid();
+                        Game.TakeAction(new PlaceBid(Game.ActivePlayer, -1));
                         Draw();
                         continue;
                     }
 
-                    Game.PlaceBid(int.Parse(bid));
+                    Game.TakeAction(new PlaceBid(Game.ActivePlayer, int.Parse(bid)));
+
                     Draw();
 
                 }
@@ -80,7 +83,8 @@ namespace Pinochle
 
         protected void CallTrump()
         {
-            Cards.Card.Suits? trump = null;
+            PinochleCard.Suits? trump = null;
+
             do
             {
                 DrawHand();
@@ -94,37 +98,36 @@ namespace Pinochle
                 {
                     case "c":
                     case "clubs":
-                        trump = Cards.Card.Suits.Clubs;
+                        trump = PinochleCard.Suits.Clubs;
                         break;
                     case "h":
                     case "hearts":
-                        trump = Cards.Card.Suits.Hearts;
+                        trump = PinochleCard.Suits.Hearts;
                         break;
                     case "s":
                     case "spades":
-                        trump = Cards.Card.Suits.Spades;
+                        trump = PinochleCard.Suits.Spades;
                         break;
                     case "d":
                     case "diamonds":
-                        trump = Cards.Card.Suits.Diamonds;
+                        trump = PinochleCard.Suits.Diamonds;
                         break;
                 }
             } while (trump == null);
 
-            Game.CallTrump((Cards.Card.Suits)trump);
+            Game.TakeAction(new CallTrump(Game.ActivePlayer, (PinochleCard.Suits)trump));
         }
 
         protected void PassCards()
         {
-            Cards.PinochleCard[] pass = AskForCards("select 4 cards pass to your partner", 4);
+            PinochleCard[] pass = AskForCards("select 4 cards pass to your partner", 4);
 
-            Game.PassCardsToLeader(pass);
+            Game.TakeAction(new PassCards(Game.ActivePlayer, pass));
 
             Draw();
 
             pass = AskForCards("select 4 cards pass back to your partner", 4);
-
-            Game.PassCardsBack(pass);
+            Game.TakeAction(new PassCards(Game.ActivePlayer, pass));
         }
 
         public void ShowMeld()
@@ -147,11 +150,9 @@ namespace Pinochle
 
         public void PlayTricks()
         {
-            Game.StartTricks();
+            PinochleCard trick = AskForACard(" Play a trick.");
 
-            Cards.PinochleCard trick = AskForACard(" Play a trick.");
-
-            Game.PlayTrick(trick);
+            Game.TakeAction(new PlayTrick(Game.ActivePlayer, trick));
             Draw();
 
             while(Game.IsCurrently(Round.Phases.Playing))
@@ -161,7 +162,7 @@ namespace Pinochle
 
                 try
                 {
-                    Game.PlayTrick(trick);
+                    Game.TakeAction(new PlayTrick(Game.ActivePlayer, trick));
                     Draw();
                 } catch(Exceptions.IllegalTrickException e)
                 {
@@ -171,12 +172,12 @@ namespace Pinochle
             }
         }
 
-        protected Cards.PinochleCard AskForACard(string message)
+        protected PinochleCard AskForACard(string message)
         {
             return AskForCards(message, 1)[0];
         }
 
-        protected Cards.PinochleCard[] AskForCards(string message, int numberOfCards)
+        protected PinochleCard[] AskForCards(string message, int numberOfCards)
         {
             Hand hand = Game.GetPlayerHand();
 
@@ -218,7 +219,7 @@ namespace Pinochle
             
 
             bool inputValid = false;
-            Cards.PinochleCard[] selectedCards;
+            PinochleCard[] selectedCards;
 
             do
             {
@@ -285,8 +286,22 @@ namespace Pinochle
             Console.Clear();
             Console.ResetColor();
 
-            int[] scores = Game.GetScores();
-            Console.WriteLine(string.Format("Phase: {0} | Current Player: {1} | Team 1 Score {2} | Team 0 Score {3}", Game.CurrentPhase(), Game.ActivePlayer, scores[0], scores[1]));
+            GameScore score = Game.GetScore();
+            var roundScore = Game.GetRoundScore();
+            Console.Write("Phase " + Game.CurrentPhase());
+            Console.Write(" | Current Player: " + Game.ActivePlayer);
+            Console.Write(string.Format(" | Team A: {0}", score.TeamA));
+            if(Game.CurrentPhase() == Round.Phases.Playing)
+            {
+                Console.Write(string.Format(" (+{0})", roundScore.TeamA));
+            }
+            Console.Write(string.Format(" | Team B: {0}", score.TeamB));
+
+            if (Game.CurrentPhase() == Round.Phases.Playing)
+            {
+                Console.Write(string.Format(" (+{0})", roundScore.TeamB));
+            }
+            Console.WriteLine();
             Console.WriteLine("----------------------------------------------------------------------------------");
 
             foreach(PhaseCompleted phase in Phases)
@@ -296,31 +311,58 @@ namespace Pinochle
 
             Console.WriteLine("----------------------------------------------------------------------------------");
 
-            foreach(PlayerTurn turn in Turns[Game.CurrentPhase()])
+            if(Game.IsCurrently(Round.Phases.Playing))
             {
-                Console.WriteLine(turn);
+                if(CurrentTrick != null)
+                {
+                    foreach (var play in CurrentTrick.Plays)
+                    {
+                        string s = play.Position + " : " + play.Card;
+
+                        if(CurrentTrick.IsCompleted && CurrentTrick.WinningPlay == play)
+                        {
+                            s += " Winner";
+                        }
+
+                        Console.WriteLine(s);
+                    }
+                }
+            } 
+            else
+            {
+                foreach (ActionTaken turn in Turns[Game.CurrentPhase()])
+                {
+                    Console.WriteLine(turn);
+                }
             }
+
 
             Console.WriteLine("----------------------------------------------------------------------------------");
         }
 
-        public void onPhaseCompleted(PhaseCompleted phaseCompleted)
+        public void OnGameEvent(GameEvent gameEvent)
         {
-            if(phaseCompleted is PlayingCompleted)
+            if (gameEvent is ActionTaken turn)
             {
-                foreach (Round.Phases phase in Enum.GetValues(typeof(Round.Phases)))
+                Turns[turn.Action.Phase].Add(turn);
+
+                if (turn.Action is PlayTrick trickAction)
                 {
-                    Turns[phase].Clear();
+                    CurrentTrick = trickAction.CurrentTrick;
                 }
             }
 
-            Phases.Add(phaseCompleted);
-            Console.WriteLine(phaseCompleted);
-        }
-        public void onTurnTaken(PlayerTurn playerTurn)
-        {
-            Turns[Game.CurrentPhase()].Add(playerTurn);
-            Console.WriteLine(playerTurn);
+            if(gameEvent is PhaseCompleted completed)
+            {
+                if(completed is Events.Phases.PlayingCompleted)
+                {
+                    foreach (Round.Phases phase in Enum.GetValues(typeof(Round.Phases)))
+                    {
+                        Turns[phase].Clear();
+                    }
+                }
+                Phases.Add(completed);
+            }
         }
     }
 }

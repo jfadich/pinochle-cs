@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Pinochle.Exceptions
 {
-    class IllegalTrickException : Exception
+    class IllegalTrickException : PinochleRuleViolationException
     {
         public IllegalTrickException(string message) : base(message)
         {

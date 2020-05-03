@@ -2,28 +2,38 @@
 using System.Collections.Generic;
 using Pinochle.Cards;
 using Pinochle.Events.Phases;
-using Pinochle.Events.Turns;
 using System.Linq;
+using Pinochle.Actions;
 
 namespace Pinochle
 {
-    public class Game
+    class Game : Contracts.IPinochleGame
     {
-        public event Action<PlayerTurn> TurnTaken;
-        public event Action<PhaseCompleted> PhaseCompleted;
-        private readonly LinkedList<Round> rounds = new LinkedList<Round>();
+        private event Action<Events.GameEvent> GameEvents;
+        private readonly LinkedList<Round> rounds = new LinkedList<Round>(); // @todo remove this, let clients track if they need
 
         private Seat[] Players;
 
         private Round CurrentRound;
 
-        public Seat ActivePlayer { get { return Players[activePosition]; } }
+        public GameScore Score;
+
+        public Seat ActivePlayer { 
+            get { return Players[activePosition]; } 
+            private set { activePosition = value.Position; } 
+        }
+
+        public void AddGameListener(Action<Events.GameEvent> listener)
+        {
+            GameEvents += listener;
+        }
 
         public int StartingPosition
         {
             get { return startingPosition; }
-            protected set { startingPosition = ValidPosition(value) ? value : 0; }
+            protected set { startingPosition = ValidatePosition(value); }
         }
+
         private int startingPosition;
 
         private int activePosition;
@@ -37,6 +47,7 @@ namespace Pinochle
         public Game()
         {
             Players = new Seat[NumberOfPlayers];
+            Score = new GameScore();
             HasStarted = false;
             IsCompleted = false;
         }
@@ -47,13 +58,117 @@ namespace Pinochle
             activePosition = StartingPosition;
 
 
-            for(int i = 0;  i < NumberOfPlayers; i++)
+            for(int i = 0;  i < Players.Length; i++)
             {
-                Players[i] = new Seat(i);
+                Players[i] = Seat.ForPosition(i);
             }
 
             HasStarted = true;
             StartRound();
+        }
+
+        protected void StartRound()
+        {
+            CurrentRound = new Round();
+
+            TakeAction(new Deal(ActivePlayer));
+
+            TakeAction(new OpenAuction(ActivePlayer));
+        }
+
+        public void TakeAction(PlayerAction action)
+        {
+            if (!IsCurrently(action.Phase))
+            {
+                throw new Exceptions.InvalidActionException("Game is not currently " + action.Phase);
+            }
+
+            if (activePosition != action.Seat.Position)
+            {
+                throw new Exceptions.OutOfTurnException();
+            }
+            
+            if(action.Apply(CurrentRound)) {
+                AdvancePlayer();
+
+                GameEvents?.Invoke(new Events.ActionTaken(action, ActivePlayer));
+
+                if(!IsCurrently(action.Phase))
+                {
+                    CompletePhase(action);
+                }
+            }
+        }
+
+        private void AdvancePlayer()
+        {
+            if (IsCurrently(Round.Phases.Bidding))
+            {
+                do
+                {
+                    SetNextPlayer();
+                } while (CurrentRound.Auction.PlayerHasPassed(ActivePlayer));
+            }
+            else if (IsCurrently(Round.Phases.Calling) || IsCurrently(Round.Phases.Passing))
+            {
+                SetNextPlayer(1);
+            } 
+            else if (IsCurrently(Round.Phases.Playing)) 
+            {
+                if(CurrentRound.Arena != null)
+                {
+                    if(CurrentRound.Arena.ActiveTrick.IsCompleted)
+                    {
+                        ActivePlayer = CurrentRound.Arena.ActiveTrick.WinningPlay.Position;
+                    } else
+                    {
+                        SetNextPlayer();
+
+                    }
+
+                } 
+            } 
+            else
+            {
+                SetNextPlayer();
+            }
+        }
+
+        private void CompletePhase(PlayerAction action)
+        {
+            Round.Phases completedPhase = action.Phase;
+
+            if (completedPhase == Round.Phases.Dealing)
+            {
+                GameEvents?.Invoke(new DealingCompleted(action.Seat));
+            }
+            else if (completedPhase == Round.Phases.Bidding)
+            {
+                GameEvents?.Invoke(new BiddingCompleted(Players[CurrentRound.Auction.WinningPosition], CurrentRound.Auction.WinningBid));
+
+                ActivePlayer = Players[CurrentRound.Auction.WinningPosition];
+            }
+            else if(completedPhase == Round.Phases.Calling)
+            {
+                GameEvents?.Invoke(new CallingCompleted(Players[CurrentRound.Auction.WinningPosition], CurrentRound.Trump));
+
+            }
+            else if(completedPhase == Round.Phases.Passing)
+            {
+                CalculateMeld();
+
+                GameEvents?.Invoke(new PassingCompleted()); // @todo pass meld in here
+
+                CurrentRound.OpenArena();
+
+                ActivePlayer = CurrentRound.Leader.Seat;
+            }
+            else if (completedPhase == Round.Phases.Playing)
+            {
+                GameEvents?.Invoke(new PlayingCompleted()); // @todo pass meld in here
+
+                CompleteRound();
+            }
         }
 
         public bool IsCurrently(Round.Phases phase) => (CurrentRound.Phase == phase);
@@ -81,98 +196,14 @@ namespace Pinochle
         }
 
 
-        public static bool ValidPosition(int position)
+        public static bool IsValidPosition(int position)
         {
             return position > 0 && position < NumberOfPlayers;
         }
 
-        protected void StartRound()
+        public static int ValidatePosition(int position)
         {
-            CurrentRound = new Round();
-
-            CurrentRound.Deal(ActivePlayer);
-
-            PhaseCompleted?.Invoke(new DealingCompleted(ActivePlayer));
-
-            SetNextPlayer();
-
-            CurrentRound.Auction.Open(ActivePlayer);
-
-            TurnTaken?.Invoke(new AuctionOpened(ActivePlayer, CurrentRound.Auction.CurrentBid));
-
-            SetNextPlayer();
-        }
-
-        public void PlaceBid(int bid)
-        {
-            CurrentRound.Auction.PlaceBid(ActivePlayer, bid);
-
-            TurnTaken?.Invoke(new BidPlaced(ActivePlayer, CurrentRound.Auction.CurrentBid));
-
-            do
-            {
-                SetNextPlayer();
-            } while (CurrentRound.Auction.PlayerPassed(ActivePlayer));
-        }
-
-        public void PassBid()
-        {
-            CurrentRound.Auction.Pass(ActivePlayer);
-
-            TurnTaken?.Invoke(new BidPassed(ActivePlayer));
-
-            if ( ! CurrentRound.Auction.IsOpen)
-            {
-                PhaseCompleted?.Invoke(new BiddingCompleted(Players[CurrentRound.Auction.WinningPosition], CurrentRound.Auction.WinningBid));
-
-                CurrentRound.AdvancePhase();
-            }
-
-            do
-            {
-                SetNextPlayer();
-            } while (CurrentRound.Auction.PlayerPassed(ActivePlayer));
-        }
-
-        public void CallTrump(PinochleCard.Suits Trump)
-        {
-            CurrentRound.CallTrump(ActivePlayer, Trump);
-
-            TurnTaken?.Invoke(new TrumpCalled(ActivePlayer, Trump));
-
-            PhaseCompleted?.Invoke(new CallingCompleted(ActivePlayer, Trump));
-
-            SetNextPlayer(1);
-        }
-
-        public void PassCardsToLeader(PinochleCard[] cards)
-        {
-            Seat partner = Players[GetNexPosition(1)];
-
-            TurnTaken?.Invoke(new PassedCards(ActivePlayer, partner, cards));
-
-            GetPlayerHand().TakeCards(cards);
-
-            SetNextPlayer(1);
-
-            GetPlayerHand().GiveCards(cards);
-        }
-
-        public void PassCardsBack(PinochleCard[] cards)
-        {
-            Seat partner = Players[GetNexPosition(1)];
-
-            GetPlayerHand().TakeCards(cards);
-
-            CurrentRound.PlayerHand(partner).GiveCards(cards);
-
-            TurnTaken?.Invoke(new PassedCards(ActivePlayer, partner, cards));
-
-            CurrentRound.AdvancePhase();
-
-            CalculateMeld();
-
-            PhaseCompleted?.Invoke(new PassingCompleted());
+            return IsValidPosition(position) ? position : 0;
         }
 
         private void CalculateMeld()
@@ -183,49 +214,20 @@ namespace Pinochle
             }
         }
 
-        public void StartTricks()
-        {
-            CurrentRound.OpenArena();
-
-            activePosition = CurrentRound.Leader.Position;
-        }
-
-        public void PlayTrick(PinochleCard play)
-        {
-            CurrentRound.PlayTrick(ActivePlayer, play);
-
-            TurnTaken?.Invoke(new TrickPlayed(ActivePlayer, play));
-
-            if (CurrentRound.Arena.ActiveTrick.IsCompleted)
-            {
-                activePosition = CurrentRound.Arena.ActiveTrick.WinningPlay.Position.Position;
-
-                TurnTaken?.Invoke(new TrickCompleted(ActivePlayer));
-            }
-            else
-            {
-                SetNextPlayer();
-            }
-
-            if (!IsCurrently(Round.Phases.Playing))
-            {
-                PhaseCompleted?.Invoke(new PlayingCompleted(CurrentRound.Arena));
-                CompleteRound();
-                return;
-            }
-        }
-
         public void CompleteRound()
         {
-            CurrentRound.CalculateTeamScore();
-            rounds.Append(CurrentRound);
+            var roundScore = CurrentRound.CalculateTeamScore();
+
+            Score.AddToTeamA(roundScore[0]);
+            Score.AddToTeamB(roundScore[1]);
+            //rounds.Append(CurrentRound);
+
 
             // Emit Round Complete
 
-            int[] scores = GetScores();
-            if(scores[0] >= 150 || scores[1] >= 150) {
+            if(Score.TeamA >= 150 || Score.TeamB >= 150) {
                 IsCompleted = true;
-                Console.WriteLine("Game Over!");
+                //Console.WriteLine("Game Over!"); @todo emit game completed event
             } else
             {
                 activePosition = CurrentRound.Dealer.Position;
@@ -234,19 +236,24 @@ namespace Pinochle
             }
         }
 
-        public int[] GetScores()
+        public GameScore GetScore()
         {
-            int[] scores = new int[4];
+         //   int[] scores = new int[4];
 
-            scores[0] = rounds.Sum(round => round.TeamScore[0]);
-            scores[1] = rounds.Sum(round => round.TeamScore[1]);
+        //    scores[0] = rounds.Sum(round => round.TeamScore[0]);
+        //    scores[1] = rounds.Sum(round => round.TeamScore[1]);
 
-            return scores;
+            return Score;
+        }
+
+        public RoundScore GetRoundScore()
+        {
+            return new RoundScore(CurrentRound.Arena, CurrentRound.MeldScore);
         }
 
         public Seat PlayerAtPosition(int position)
         {
-            if(!ValidPosition(position))
+            if(!IsValidPosition(position))
             {
                 return null;
             }
@@ -266,6 +273,6 @@ namespace Pinochle
             return this;
         }
 
-        protected int GetNexPosition(int sameTeam = 0) => (ActivePlayer.Position + 1 + sameTeam) & 3;
+        protected int GetNexPosition(int sameTeam = 0) => ActivePlayer.NextPosition(sameTeam);
     }
 }

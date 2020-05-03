@@ -1,5 +1,6 @@
 ﻿
 using System;
+using Pinochle.Cards;
 
 namespace Pinochle.Events.Phases
 {
@@ -7,8 +8,16 @@ namespace Pinochle.Events.Phases
     {
         public Seat Leader;
 
-        public CallingCompleted(Seat leader, Cards.PinochleCard.Suits trump) : base(Round.Phases.Dealing, String.Format("{0} called {1} for trump", leader, trump)) {
+        PinochleCard.Suits Trump;
+
+        public CallingCompleted(Seat leader, PinochleCard.Suits trump) : base(Round.Phases.Calling, Round.Phases.Passing) {
             Leader = leader;
+            Trump = trump;
+        }
+
+        public override string ToString()
+        {
+            return String.Format("{0} called {1} for trump", Leader, Trump);
         }
     }
 }

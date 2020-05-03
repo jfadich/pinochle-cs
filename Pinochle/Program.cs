@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Pinochle.Cards;
-using Pinochle.Server;
 
 namespace Pinochle
 {
@@ -13,11 +12,6 @@ namespace Pinochle
 
             pinochle.Play();
             Console.ReadLine();
-
-
-            //Server.Server server = new Server.Server();
-
-            //server.Start();
         }
     }
 }

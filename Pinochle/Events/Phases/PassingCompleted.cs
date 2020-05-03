@@ -3,8 +3,8 @@ using System;
 
 namespace Pinochle.Events.Phases
 {
-    class PassingCompleted : PhaseCompleted
+    class PassingCompleted : Events.PhaseCompleted
     {
-        public PassingCompleted() : base(Round.Phases.Dealing, String.Format("Passing Completed")) { }
+        public PassingCompleted() : base(Round.Phases.Passing, Round.Phases.Playing) { }
     }
 }

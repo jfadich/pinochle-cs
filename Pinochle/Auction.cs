@@ -8,23 +8,18 @@ namespace Pinochle
     {
         public int[] Bids;
 
-        public int StartingBid { get; protected set; } = 25;
+        public static int StartingBid { get; } = 25;
 
-        public int CurrentBid { get; protected set; }
-        public int WinningBid { get; protected set; }
+        public int CurrentBid { get; private set; }
+        public int WinningBid { get; private set; }
 
-        public int WinningPosition { get; protected set; }
+        public int WinningPosition { get; private set; }
 
-        public bool IsOpen { get; protected set; } = true;
-
-        public bool[] PlayersPassed;
-
-        public bool MetBid = false;
+        public bool IsOpen { get; private set; } = true;
 
         public Auction()
         {
-            Bids = new int[4];
-            PlayersPassed = new bool[4];
+            Bids = new int[Game.NumberOfPlayers];
         }
 
         public void Open(Seat player)
@@ -32,66 +27,52 @@ namespace Pinochle
             PlaceBid(player, StartingBid);
         }
 
-        public bool PlayerPassed(Seat player) => PlayersPassed[player.Position];
+        public bool PlayerHasPassed(Seat player) => Bids[player.Position] == -1;
 
-        public void Pass(Seat player)
+        public void PlaceBid(Seat player, int bid)
         {
-            if (PlayersPassed[player.Position])
+            int minBid = CurrentBid + 1;
+
+            if (PlayerHasPassed(player))
             {
                 throw new Exceptions.PinochleRuleViolationException("Player has already passed.");
             }
 
-            PlayersPassed[player.Position] = true;
+            if (bid < minBid && bid != -1)
+            {
+                throw new Exceptions.PinochleRuleViolationException("Must bid  at least " + minBid);
+            }
+
+            Bids[player.Position] = bid;
+
+            // If this player is passing, check for the last person standing
+            if(bid == -1)
+            {
+                CheckForClose();
+            } else
+            {
+                CurrentBid = bid;
+            }
+        }
+
+        private void CheckForClose()
+        {
             int passedPlayers = 0;
 
-            foreach(bool playerPassed in PlayersPassed)
+            foreach (int playerBid in Bids)
             {
-                if(playerPassed)
+                if (playerBid == -1)
                 {
                     passedPlayers++;
                 }
             }
 
-            if(passedPlayers == 3)
+            if (passedPlayers == (Game.NumberOfPlayers - 1))
             {
-                Close();
+                IsOpen = false;
+                WinningBid = CurrentBid;
+                WinningPosition = Array.IndexOf(Bids, CurrentBid);
             }
-        }
-
-        public void PlaceBid(Seat player, int bid)
-        {
-            int playersBid = Bids[player.Position];
-            int minBid = CurrentBid + 1;
-
-            if (PlayersPassed[player.Position])
-            {
-                throw new Exceptions.PinochleRuleViolationException("Player has already passed.");
-            }
-
-            if (bid < minBid)
-            {
-                throw new Exceptions.PinochleRuleViolationException("Please enter a bid of at least " + minBid);
-            }
-
-            Bids[player.Position] = bid;
-            CurrentBid = bid;
-        }
-        protected void Close()
-        {
-            IsOpen = false;
-            WinningBid = CurrentBid;
-
-            for (int position = 0; position < 4; position++)
-            {
-                if(PlayersPassed[position])
-                {
-                    continue;
-                }
-
-                WinningPosition = position;
-                break;
-            }
-
         }
     }
 }

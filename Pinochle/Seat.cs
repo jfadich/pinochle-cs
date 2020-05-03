@@ -12,15 +12,23 @@ namespace Pinochle
 
         public int TeamId { get => Position & PartnerMask; }
 
+        public static Seat ForPosition(int position)
+        {
+            return new Seat(position);
+        }
+
         public Seat(int position)
         {
-            Position = Game.ValidPosition(position) ? position : 0;
+            Position = Game.ValidatePosition(position);
         }
 
         public Boolean IsSameTeam(Seat seat)
         {
             return seat.TeamId == TeamId;
         }
+
+        public int NextPosition(int sameTeam = 0) => (Position + 1 + sameTeam) & 3;
+        public Seat PartnerSeat() => new Seat(NextPosition(1));
 
         public override string ToString()
         {

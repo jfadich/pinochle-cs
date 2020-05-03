@@ -4,9 +4,13 @@ using System.Text;
 
 namespace Pinochle.Exceptions
 {
-    class OutOfTurnException : Exception
+    class OutOfTurnException : PinochleRuleViolationException
     {
         public OutOfTurnException(string message) : base(message)
+        {
+
+        }
+        public OutOfTurnException() : base("It is not currently your turn")
         {
 
         }

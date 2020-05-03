@@ -3,12 +3,17 @@ using System;
 
 namespace Pinochle.Events.Phases
 {
-    class DealingCompleted : PhaseCompleted
+    class DealingCompleted : Events.PhaseCompleted
     {
-        public Seat Dealer;
-
-        public DealingCompleted(Seat dealer) : base(Round.Phases.Dealing, String.Format("{0} Dealt", dealer)) {
+        Seat Dealer;
+        public DealingCompleted(Seat dealer) : base(Round.Phases.Dealing, Round.Phases.Bidding) 
+        {
             Dealer = dealer;
+        }
+
+        public override string ToString()
+        {
+            return Dealer + " dealt";
         }
     }
 }

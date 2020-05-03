@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Pinochle.Tricks;
 using Pinochle.Cards;
 using System.Linq;
+using Pinochle.Events;
 
 namespace Pinochle
 {
@@ -24,7 +25,7 @@ namespace Pinochle
 
         public Seat Dealer { get; private set; }
 
-        public Seat Leader { get; private set; }
+        public WinningBidder Leader { get; private set; }
 
         public int[] TeamScore = new int[2] { 0,0};
 
@@ -66,10 +67,33 @@ namespace Pinochle
                 throw new Exceptions.PinochleRuleViolationException(player + " did not win the auction and cannot call trump");
             }
 
-            Leader = player;
+            Leader = new WinningBidder(player, Auction.WinningBid);
             Trump = trump;
 
+
             AdvancePhase();
+        }
+
+        public void PlaceBid(Seat player, int bid)
+        {
+            Auction.PlaceBid(player, bid);
+
+            if ( ! Auction.IsOpen )
+            {
+                AdvancePhase();
+            }
+        }
+
+        public void PassCards(Seat from, Seat to, PinochleCard[] cards)
+        {
+            PlayerHand(from).TakeCards(cards);
+
+            PlayerHand(to).GiveCards(cards);
+
+            if (from.Equals(Leader.Seat))
+            {
+                AdvancePhase();
+            }
         }
 
         public void CalculateMeld(Seat player)
@@ -81,7 +105,7 @@ namespace Pinochle
 
         public void OpenArena()
         {
-            Arena = new Arena(Trump, Leader);
+            Arena = new Arena(Trump, Leader.Seat);
         }
 
         public void PlayTrick(Seat player, PinochleCard play)
@@ -107,6 +131,7 @@ namespace Pinochle
             TeamScore = new int[2];
             TrickScore = Arena.GetTeamScore();
 
+            // @todo check for nines 
             if (TrickScore[0] > 0)
             {
                 TeamScore[0] += MeldScore[0].Sum(meld => meld.GetValue());
@@ -123,15 +148,38 @@ namespace Pinochle
             TeamScore[1] += TrickScore[1];
 
             int winningTeam = Auction.WinningPosition & 1;
-            Auction.MetBid = Auction.WinningBid < TeamScore[winningTeam];
+            bool metBid = Auction.WinningBid < TeamScore[winningTeam];
 
-            if (!Auction.MetBid)
+            if (!metBid)
             {
                 TeamScore[winningTeam] = 0 - Auction.WinningBid;
             }
 
-
             return TeamScore;
+        }
+
+        public int[] GetCurrentTeamScore()
+        {
+            var score = new int[2];
+
+            if(Phase > Phases.Passing)
+            {
+                score[0] += MeldScore[0].Sum(meld => meld.GetValue());
+                score[0] += MeldScore[2].Sum(meld => meld.GetValue());
+
+                score[1] += MeldScore[1].Sum(meld => meld.GetValue());
+                score[1] += MeldScore[3].Sum(meld => meld.GetValue());
+            }
+
+            if(Phase >= Phases.Playing)
+            {
+                TrickScore = Arena.GetTeamScore();
+
+                score[0] += TrickScore[0];
+                score[1] += TrickScore[1];
+            }
+
+            return score;
         }
 
         public int CalculateTeamMeld(int team)
@@ -147,6 +195,17 @@ namespace Pinochle
             }
 
             Phase = (Phases)(Phase + 1);
+        }
+
+        public struct WinningBidder {
+            public Seat Seat { get; }
+            public int Bid { get; }
+
+            public WinningBidder(Seat seat, int bid)
+            {
+                Seat = seat;
+                Bid = bid;
+            }
         }
     }
 }

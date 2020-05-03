@@ -2,12 +2,10 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Pinochle.Server
+namespace Pinochle.Events
 {
-    class GameRequest
+    abstract public class GameEvent
     {
-        public string Name;
-
 
     }
 }

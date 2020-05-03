@@ -7,9 +7,9 @@ namespace Pinochle.Tricks
 {
     public class Trick
     {
-        public Card LeadCard { get; protected set; }
+        public Card LeadCard { get; private set; }
 
-        public Card.Suits LeadSuit { get; protected set; }
+        public Card.Suits LeadSuit { get; private set; }
 
         public List<Play> Plays;
 
