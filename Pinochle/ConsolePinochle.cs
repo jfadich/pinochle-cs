@@ -288,16 +288,16 @@ namespace JFadich.Pinochle.Engine
 
             GameScore score = Game.GetScore();
             var roundScore = Game.GetRoundScore();
-            Console.Write("Phase " + Game.CurrentPhase());
+            Console.Write("Phase " + Game.CurrentPhase.ToString());
             Console.Write(" | Current Player: " + Game.ActivePlayer);
             Console.Write(string.Format(" | Team A: {0}", score.TeamA));
-            if(Game.CurrentPhase() == Phases.Playing)
+            if(Game.CurrentPhase == Phases.Playing)
             {
                 Console.Write(string.Format(" (+{0})", roundScore.TeamA));
             }
             Console.Write(string.Format(" | Team B: {0}", score.TeamB));
 
-            if (Game.CurrentPhase() == Phases.Playing)
+            if (Game.CurrentPhase == Phases.Playing)
             {
                 Console.Write(string.Format(" (+{0})", roundScore.TeamB));
             }
@@ -330,7 +330,7 @@ namespace JFadich.Pinochle.Engine
             } 
             else
             {
-                foreach (ActionTaken turn in Turns[Game.CurrentPhase()])
+                foreach (ActionTaken turn in Turns[Game.CurrentPhase])
                 {
                     Console.WriteLine(turn);
                 }

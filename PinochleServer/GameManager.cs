@@ -7,6 +7,7 @@ using JFadich.Pinochle.Server.Models;
 using Microsoft.AspNetCore.SignalR;
 using System.Collections.Concurrent;
 using JFadich.Pinochle.Server.RealTime;
+using JFadich.Pinochle.Engine.Events;
 
 namespace JFadich.Pinochle.Server
 {
@@ -17,10 +18,10 @@ namespace JFadich.Pinochle.Server
         private readonly ConcurrentDictionary<string, string> Players = new ConcurrentDictionary<string, string>(); // [playerId => gameId]
 
         private IHubContext<GameHub, IGameClient> gameHub;
-        public List<Room> PublicLobbies { get => AllLobbies.Where(item => !item.IsPrivate).ToList(); }
-        public List<Room> AllLobbies { get => Lobbies.Select(x => Rooms[x]).ToList(); }
-        public List<Room> PublicRooms { get => Rooms.Where(item => !item.Value.IsPrivate).Select(item => item.Value).ToList(); }
-        public List<Room> AllRooms { get => Rooms.Values.ToList(); }
+        public List<Lobby> PublicLobbies { get => AllLobbies.Where(item => !item.IsPrivate).ToList(); }
+        public List<Lobby> AllLobbies { get => Lobbies.Select(x => Rooms[x].ToLobby()).ToList(); }
+        public List<Room> PublicGames { get => Rooms.Where(item => !item.Value.IsPrivate && item.Value.Status == Room.Statuses.Playing).Select(item => item.Value).ToList(); }
+        public List<Room> AllGames { get => Rooms.Where(item => item.Value.Status == Room.Statuses.Playing).Select(item => item.Value).ToList(); }
 
         public const int MaxRooms = 100;
         public const int MaxLobbies = 10;
@@ -69,18 +70,18 @@ namespace JFadich.Pinochle.Server
             return null;
         }
 
-        public Room FindRoomForPlayer(string playerId)
+        public Lobby FindLobbyForPlayer(string playerId)
         {
             if (Players.ContainsKey(playerId))
             {
-                return GetRoom(Players[playerId]);
+                return GetRoom(Players[playerId]).ToLobby();
             }
 
-            foreach (var room in AllLobbies)
+            foreach (var lobby in AllLobbies)
             {
-                if(AddPlayerToRoom(room.Id, playerId))
+                if(AddPlayerToRoom(lobby.Id, playerId))
                 {
-                    return room;
+                    return lobby;
                 }
             }
 
@@ -88,7 +89,7 @@ namespace JFadich.Pinochle.Server
 
             if(newRoom != null && AddPlayerToRoom(newRoom.Id, playerId))
             {
-                return newRoom;
+                return newRoom.ToLobby();
             }
 
             return null;
@@ -134,6 +135,11 @@ namespace JFadich.Pinochle.Server
         {
             if (Players.ContainsKey(player.Id))
             {
+                if(Players[player.Id] == id)
+                {
+                    return true;
+                }
+
                 return false;
             }
 
@@ -149,23 +155,42 @@ namespace JFadich.Pinochle.Server
 
             if (room.IsFull())
             {
-                StartGame(room);
+                StartGame(room, 0); // @todo 
             }
 
             return true;
         }
 
-        private bool StartGame(Room room)
+        private bool StartGame(Room room, int startingPosition)
         {
             Lobbies.Remove(room.Id);
 
+            room.AddGameListener((GameEvent gameEvent) =>
+            {
+                HandleGameEvent(room, gameEvent);
+            });
+
             gameHub.Clients.Groups(room.Id, Audiences.Matchmaking).ClosedLobby(room.Id, Lobby.ClosedReasons.GameStarting.ToString());
 
-            return room.StartGame();
+            gameHub.Clients.Groups(room.Id, Audiences.AllGames).GameStarted(room.Id, room);
+
+            return room.StartGame(startingPosition);
         }
-        private static string GenerateID(int length)
+
+        private void HandleGameEvent(Room room, GameEvent gameEvent)
         {
-            return Guid.NewGuid().ToString("n");//.Substring(0, length);
+            if (gameEvent is ActionTaken action)
+            {
+                BroadcastActionTaken(room, action);
+            }
+        }
+
+        private void BroadcastActionTaken(Room room, ActionTaken actionEvent)
+        {
+            if(actionEvent.Action is Engine.Actions.Deal)
+            {
+                gameHub.Clients.Groups(room.Id, Audiences.AllGames).ActionTaken(room.Id, actionEvent);
+            }
         }
     }
 }

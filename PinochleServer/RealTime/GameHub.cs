@@ -25,6 +25,12 @@ namespace JFadich.Pinochle.Server.RealTime
             return Groups.AddToGroupAsync(Context.ConnectionId, Audiences.Matchmaking);
         }
 
+        [Authorize(Roles = "Administrator,Coordinator")]
+        public Task SubscribeToAllGames()
+        {
+            return Groups.AddToGroupAsync(Context.ConnectionId, Audiences.AllGames);
+        }
+
         [Authorize(Roles = "Player")]
         public Task SubscribeToMyRoom()
         {

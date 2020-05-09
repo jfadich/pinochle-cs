@@ -14,7 +14,8 @@ namespace JFadich.Pinochle.Engine
 
         private Round CurrentRound;
 
-        public GameScore Score;
+        public GameScore Score { get; }
+        public Phases CurrentPhase { get => CurrentRound == null ? Phases.Dealing : CurrentRound.Phase; }
 
         public Seat ActivePlayer {
             get { return Players[activePosition]; }
@@ -172,8 +173,6 @@ namespace JFadich.Pinochle.Engine
         }
 
         public bool IsCurrently(Phases phase) => (CurrentRound.Phase == phase);
-
-        public Phases CurrentPhase() => (CurrentRound.Phase);
 
         public Hand GetPlayerHand(Seat player)
         {

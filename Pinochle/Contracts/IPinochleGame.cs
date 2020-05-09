@@ -7,6 +7,10 @@ namespace JFadich.Pinochle.Engine.Contracts
     {
         public int PlayerCount { get; }
 
+        public Seat ActivePlayer { get; }
+        public GameScore Score { get; }
+        public Phases CurrentPhase { get; }
+
         public void AddGameListener(Action<Events.GameEvent> listener);
 
         void StartGame(int startingPosition = 0);

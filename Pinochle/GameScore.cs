@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
+﻿
 namespace JFadich.Pinochle.Engine
 {
-    class GameScore
+    public class GameScore
     {
         public int TeamA { get; private set; }
         public int TeamB { get; private set; }

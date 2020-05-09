@@ -26,28 +26,25 @@ namespace JFadich.Pinochle.Server.Controllers
         [HttpGet]
         public List<Room> Index([FromServices] GameManager games)
         {
-            return games.PublicRooms;
+            return games.PublicGames;
         }
 
-        [Authorize(Roles = "Administrator,Coordinator")]
-        [HttpPost]
-        public IActionResult Matchmaking([FromBody] JoinRequest join, [FromServices] GameManager games)
+        [Authorize(Roles = "Administrator")]
+        [HttpGet("all")]
+        public List<Room> All([FromServices] GameManager games)
         {
-            //var user = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var room = games.FindRoomForPlayer(join.PlayerId);
-
-            if (room == null)
-            {
-                return BadRequest();
-            }
-
-            return Ok(room.Id);
+            return games.AllGames;
         }
 
-        [Authorize(Roles = "Player,Coordinator")]
+        [Authorize(Roles = "Administrator,Coordinator,Player,Observer")]
         [HttpGet("{id}")]
         public IActionResult Get(string id, [FromServices] GameManager games)
         {
+            if ((User.IsInRole("Player") || User.IsInRole("Observer")) && User.FindFirst("room")?.Value != id)
+            {
+                return Forbid();
+            }
+
             var game = games.GetRoom(id);
 
             if(game == null)
@@ -56,6 +53,31 @@ namespace JFadich.Pinochle.Server.Controllers
             }
 
             return Ok(game);
+        }
+
+        [Authorize(Roles = "Player")]
+        [HttpPost("{id}/start")]
+        public IActionResult PlaceBid(string id, [FromServices] GameManager rooms)
+        {
+            var room = rooms.GetRoom(id);
+
+            if (room == null)
+            {
+                return NotFound();
+            }
+
+            if (User.FindFirst("room")?.Value != id)
+            {
+                return Forbid();
+            }
+
+            if(!Int32.TryParse(User.FindFirst("position")?.Value, out int position)) {
+                position = 0;
+            }
+
+            room.StartGame(position);
+
+            return Ok();
         }
     }
 }

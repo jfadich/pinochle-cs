@@ -13,14 +13,17 @@ namespace JFadich.Pinochle.Server.Models
             LobbyExpired
         };
 
-        public string RoomId { get; }
+        public string Id { get; }
 
         public Player[] Players { get; }
 
-        public Lobby(string id, Player[] players)
+        public bool IsPrivate { get; }
+
+        public Lobby(string id, Player[] players, bool isPrivate)
         {
-            RoomId = id;
+            Id = id;
             Players = players;
+            IsPrivate = isPrivate;
         }
     }
 }

@@ -14,30 +14,44 @@ namespace JFadich.Pinochle.Server.Controllers
 {
     [Authorize]
     [ApiController]
-    [Route("[controller]")]
-    public class LobbiesController : ControllerBase
+    [Route("games/[controller]")]
+    public class MatchmakingController : ControllerBase
     {
         private readonly ILogger<GamesController> _logger;
 
-        public LobbiesController(ILogger<GamesController> logger)
+        public MatchmakingController(ILogger<GamesController> logger)
         {
             _logger = logger;
         }
 
         [HttpGet]
-        public List<Room> Index([FromServices] GameManager games)
+        public List<Lobby> Index([FromServices] GameManager games)
         {
             return games.PublicLobbies;
         }
 
-        [Authorize(Roles = "Administrator,Player")]
+        [Authorize(Roles = "Administrator,Coordinator")]
+        [HttpPost]
+        public IActionResult Matchmaking([FromBody] JoinRequest join, [FromServices] GameManager games)
+        {
+            var lobby = games.FindLobbyForPlayer(join.PlayerId);
+
+            if (lobby == null)
+            {
+                return BadRequest();
+            }
+
+            return Ok(lobby.Id);
+        }
+
+        [Authorize(Roles = "Administrator")]
         [HttpGet("all")]
-        public List<Room> All([FromServices] GameManager games)
+        public List<Lobby> All([FromServices] GameManager games)
         {
             return games.AllLobbies;
         }
 
-        [Authorize(Roles = "Player,Coordinator")]
+        [Authorize(Roles = "Administrator,Player,Coordinator")]
         [HttpGet("{id}")]
         public IActionResult Get(string id, [FromServices] GameManager games)
         {
@@ -69,11 +83,6 @@ namespace JFadich.Pinochle.Server.Controllers
                 return BadRequest();
             }
 
-            return Ok();
-        }
-
-        public IActionResult StartGame()
-        {
             return Ok();
         }
     }

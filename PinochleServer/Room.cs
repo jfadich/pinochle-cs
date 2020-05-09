@@ -4,13 +4,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using JFadich.Pinochle.Engine;
 using JFadich.Pinochle.Engine.Contracts;
+using JFadich.Pinochle.Engine.Events;
 using JFadich.Pinochle.Server.Models;
 
 namespace JFadich.Pinochle.Server
 {
     public class Room
     {
-        public string Status { get; private set; }
+        public Statuses Status { get; private set; }
 
         public enum Statuses
         {
@@ -32,7 +33,7 @@ namespace JFadich.Pinochle.Server
             Game = GameFactory.Make();
             Id = id;
             Players = new Player[Game.PlayerCount];
-            Status = "Seating";
+            Status = Statuses.Matchmaking;
         }
         public void MakePrivate()
         {
@@ -92,13 +93,24 @@ namespace JFadich.Pinochle.Server
             return GetOpenPosition() == -1;
         }
 
-        public bool StartGame()
+        public Lobby ToLobby()
         {
-            Status = "Active";
+            return new Lobby(Id, Players, IsPrivate);
+        }
 
-            Game.StartGame();
+        public bool StartGame(int startingPosition)
+        {
+            Status = Statuses.Playing;
+
+            Game.AddGameListener(HandleGameEvent);
+            Game.StartGame(startingPosition);
 
             return true;
+        }
+
+        public void AddGameListener(Action<GameEvent> listener)
+        {
+            Game.AddGameListener(listener);
         }
     }
 }
