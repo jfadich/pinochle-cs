@@ -102,7 +102,6 @@ namespace JFadich.Pinochle.Server
         {
             Status = Statuses.Playing;
 
-            Game.AddGameListener(HandleGameEvent);
             Game.StartGame(startingPosition);
 
             return true;

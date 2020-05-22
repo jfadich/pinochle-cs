@@ -9,7 +9,6 @@ namespace JFadich.Pinochle.Server.Models
 {
     public class Player
     {
-        [JsonConverter(typeof(Converters.SeatConverter))]
         public Seat Seat { get; set; }
 
         public string Id { get; set;  }

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using JFadich.Pinochle.Engine.Cards;
 using JFadich.Pinochle.Engine.Events;
 using JFadich.Pinochle.Server.Models;
+using PinochleServer.Models;
 
 namespace JFadich.Pinochle.Server.RealTime
 {
@@ -16,7 +17,7 @@ namespace JFadich.Pinochle.Server.RealTime
 
         Task GameStarted(string roomId, Room room);
 
-        Task ActionTaken(string roomId, ActionTaken action);
+        Task TurnTaken(string roomId, TurnTaken turn);
 
         Task RecieveCards(string roomId, PinochleCard[] cards);
         Task RemoveCards(string roomId, PinochleCard[] cards);

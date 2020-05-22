@@ -8,20 +8,23 @@ namespace JFadich.Pinochle.Engine
 {
     class Hand : IHand
     {
-        public List<PinochleCard> Cards { get; }
+        public PinochleCard[] Cards { get => _cards.ToArray(); }
+
+        private List<PinochleCard> _cards { get; }
+
         public PinochleCard[] DealtCards { get; }
 
         public Hand(PinochleCard[] cards)
         {
             Array.Sort(cards);
             DealtCards = cards;
-            Cards = new List<PinochleCard>(cards);
+            _cards = new List<PinochleCard>(cards);
         }
 
         public Boolean HasCards(PinochleCard[] needles)
         {
             List <PinochleCard> needlesList = new List<PinochleCard>(needles);
-            return !needlesList.Where(needle => !Cards.Contains(needle)).Any();
+            return !needlesList.Where(needle => !_cards.Contains(needle)).Any();
         }
 
         public PinochleCard TakeCard(PinochleCard requestedCard)
@@ -31,14 +34,14 @@ namespace JFadich.Pinochle.Engine
                 throw new Exception(String.Format("Card '%s' is not in the hand", requestedCard));
             }
 
-            Cards.Remove(requestedCard);
+            _cards.Remove(requestedCard);
 
             return requestedCard;
         }
 
         public PinochleCard[] TakeCards(PinochleCard[] requestedCards)
         {
-            if(requestedCards.Length > Cards.Count)
+            if(requestedCards.Length > _cards.Count)
             {
                 throw new Exception("Can't take more cards than are in the hand");
             }
@@ -56,13 +59,13 @@ namespace JFadich.Pinochle.Engine
 
         public void GiveCards(PinochleCard[] cards)
         {
-            Cards.AddRange(cards);
-            Cards.Sort();
+            _cards.AddRange(cards);
+            _cards.Sort();
         }
 
         public override string ToString()
         {
-            return String.Join(" , ", Cards);
+            return String.Join(" , ", _cards);
         }
     }
 }

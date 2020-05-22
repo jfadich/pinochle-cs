@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.SignalR;
 using System.Collections.Concurrent;
 using JFadich.Pinochle.Server.RealTime;
 using JFadich.Pinochle.Engine.Events;
+using PinochleServer.Models;
 
 namespace JFadich.Pinochle.Server
 {
@@ -189,7 +190,12 @@ namespace JFadich.Pinochle.Server
         {
             if(actionEvent.Action is Engine.Actions.Deal)
             {
-                gameHub.Clients.Groups(room.Id, Audiences.AllGames).ActionTaken(room.Id, actionEvent);
+                for (int i = 0; i < room.Game.PlayerCount; i++) {
+                    gameHub.Clients.Groups(room.Id + ":position:" + i).TurnTaken(room.Id, TurnTaken.FromEvent(actionEvent, Seat.ForPosition(i)));
+                }
+            } else
+            {
+                gameHub.Clients.Groups(room.Id, Audiences.AllGames).TurnTaken(room.Id, TurnTaken.FromEvent(actionEvent, null));
             }
         }
     }

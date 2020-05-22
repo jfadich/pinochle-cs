@@ -30,6 +30,7 @@ namespace JFadich.Pinochle.Server
             services.AddControllers().AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.Converters.Add(new Converters.SeatConverter());
+                options.JsonSerializerOptions.Converters.Add(new Converters.PinochleCardConverter());
             });
 
             services.AddAuthentication(x =>
@@ -67,7 +68,11 @@ namespace JFadich.Pinochle.Server
             });
 
             services.AddCors();
-            services.AddSignalR();
+            services.AddSignalR().AddJsonProtocol(options =>
+            {
+                options.PayloadSerializerOptions.Converters.Add(new Converters.SeatConverter());
+                options.PayloadSerializerOptions.Converters.Add(new Converters.PinochleCardConverter());
+            });
             services.AddSingleton<GameManager, GameManager>();
 
         }

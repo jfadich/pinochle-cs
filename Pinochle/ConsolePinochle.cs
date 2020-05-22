@@ -237,7 +237,7 @@ namespace JFadich.Pinochle.Engine
                     try
                     {
                         int cardIndex = int.Parse(cards[i]);
-                        if (cardIndex > hand.Cards.Count - 1)
+                        if (cardIndex > hand.Cards.Length - 1)
                         {
                             inputValid = false;
                             break;

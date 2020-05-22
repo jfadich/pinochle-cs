@@ -41,7 +41,7 @@ namespace JFadich.Pinochle.Server.Controllers
                 return BadRequest();
             }
 
-            return Ok(lobby.Id);
+            return Ok(lobby);
         }
 
         [Authorize(Roles = "Administrator")]
@@ -83,7 +83,7 @@ namespace JFadich.Pinochle.Server.Controllers
                 return BadRequest();
             }
 
-            return Ok();
+            return Ok(games.GetRoom(id).ToLobby());
         }
     }
 }

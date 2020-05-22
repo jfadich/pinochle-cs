@@ -57,9 +57,11 @@ namespace JFadich.Pinochle.Server.RealTime
         [Authorize(Roles = "Player")]
         public Task SubscribeToGamePosition()
         {
-            var room = Context.User.FindFirst("game")?.Value;
+            var room = Context.User.FindFirst("room")?.Value;
 
-            if (room != null && Int32.TryParse(Context.User.FindFirst("position")?.Value, out int position))
+            var tokenPosition = Context.User.FindFirst("position");
+
+            if (room != null && tokenPosition != null &&  Int32.TryParse(tokenPosition.Value, out int position))
             {
                 Groups.AddToGroupAsync(Context.ConnectionId, room + ":position:" + position);
                 return Groups.AddToGroupAsync(Context.ConnectionId, room + ":team:" + Seat.ForPosition(position).TeamId);

@@ -3,11 +3,9 @@ using JFadich.Pinochle.Engine.Contracts;
 
 namespace JFadich.Pinochle.Engine.Actions
 {
-    public class OpenAuction : PlayerAction
+    public class OpenAuction : PlaceBid
     {
-        public int Bid { get; }
-
-        public OpenAuction(Seat seat) : base(seat, Phases.Bidding) { }
+        public OpenAuction(Seat seat) : base(seat, Auction.StartingBid) { }
         public override bool Apply(IGameRound round)
         {
             round.OpenAuction(Seat);

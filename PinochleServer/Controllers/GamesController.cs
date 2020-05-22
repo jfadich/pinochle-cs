@@ -54,30 +54,5 @@ namespace JFadich.Pinochle.Server.Controllers
 
             return Ok(game);
         }
-
-        [Authorize(Roles = "Player")]
-        [HttpPost("{id}/start")]
-        public IActionResult PlaceBid(string id, [FromServices] GameManager rooms)
-        {
-            var room = rooms.GetRoom(id);
-
-            if (room == null)
-            {
-                return NotFound();
-            }
-
-            if (User.FindFirst("room")?.Value != id)
-            {
-                return Forbid();
-            }
-
-            if(!Int32.TryParse(User.FindFirst("position")?.Value, out int position)) {
-                position = 0;
-            }
-
-            room.StartGame(position);
-
-            return Ok();
-        }
     }
 }
