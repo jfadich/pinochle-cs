@@ -1,13 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using JFadich.Pinochle.Engine.Cards;
 
-namespace JFadich.Pinochle.Engine
+namespace JFadich.Pinochle.PlayConsole
 {
     class Program
     {
         static void Main(string[] args)
         {
+            ConsoleGame pinochle = new ConsoleGame();
+
+            pinochle.Play();
             Console.ReadLine();
         }
     }

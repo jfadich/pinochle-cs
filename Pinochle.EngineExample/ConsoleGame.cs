@@ -5,22 +5,24 @@ using System.Linq;
 using JFadich.Pinochle.Engine.Actions;
 using JFadich.Pinochle.Engine.Cards;
 using JFadich.Pinochle.Engine.Events;
+using JFadich.Pinochle.Engine.Contracts;
+using JFadich.Pinochle.Engine;
 
-namespace JFadich.Pinochle.Engine
+namespace JFadich.Pinochle.PlayConsole
 {
-    class ConsolePinochle
+    class ConsoleGame
     {
         public Dictionary<Phases, List<ActionTaken>> Turns;
         public List<PhaseCompleted> CompletedPhases;
 
-        private Tricks.Trick CurrentTrick;
+        private Engine.Tricks.Trick CurrentTrick;
 
-        protected Game Game;
+        protected IPinochleGame Game;
 
         public void Play()
         {
             Console.OutputEncoding = Encoding.UTF8;
-            Game = new Game();
+            Game = GameFactory.Make(); ;
             Turns = new Dictionary<Phases, List<ActionTaken>>();
             CompletedPhases = new List<PhaseCompleted>();
             
