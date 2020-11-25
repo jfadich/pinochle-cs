@@ -61,10 +61,12 @@ namespace JFadich.Pinochle.Server.RealTime
 
             var tokenPosition = Context.User.FindFirst("position");
 
-            if (room != null && tokenPosition != null &&  Int32.TryParse(tokenPosition.Value, out int position))
+            if (room != null && tokenPosition != null && Int32.TryParse(tokenPosition.Value, out int position))
             {
-                Groups.AddToGroupAsync(Context.ConnectionId, room + ":position:" + position);
-                return Groups.AddToGroupAsync(Context.ConnectionId, room + ":team:" + Seat.ForPosition(position).TeamId);
+                return Task.WhenAll(
+                    Groups.AddToGroupAsync(Context.ConnectionId, $"{room}:position:{position}"), 
+                    Groups.AddToGroupAsync(Context.ConnectionId, room + ":team:" + Seat.ForPosition(position).TeamId)
+                );
             }
 
             return null;

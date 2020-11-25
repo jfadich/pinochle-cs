@@ -55,8 +55,8 @@ namespace JFadich.Pinochle.Engine
 
         public void StartGame(int startingPosition = 0)
         {
-            StartingPosition = startingPosition;
-            activePosition = StartingPosition;
+            //StartingPosition = startingPosition;
+            activePosition = StartingPosition = startingPosition;
 
 
             for(int i = 0;  i < Players.Length; i++)

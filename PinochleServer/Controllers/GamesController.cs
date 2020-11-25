@@ -16,19 +16,20 @@ namespace JFadich.Pinochle.Server.Controllers
     public class GamesController : ControllerBase
     {
         private readonly ILogger<GamesController> _logger;
+        private readonly GameManager games;
 
-        public GamesController(ILogger<GamesController> logger)
+        public GamesController(ILogger<GamesController> logger, GameManager gameManager)
         {
-            _logger = logger;
+            games = gameManager;
         }
 
-        [Authorize(Roles = "Administrator")]
+    /*    [Authorize(Roles = "Administrator")]
         [HttpGet]
-        public List<Room> Index([FromServices] GameManager games)
+        public List<Room> Index([FromServices] )
         {
             return games.PublicGames;
         }
-
+        */
         [Authorize(Roles = "Administrator")]
         [HttpGet("all")]
         public List<Room> All([FromServices] GameManager games)

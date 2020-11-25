@@ -22,7 +22,7 @@ namespace JFadich.Pinochle.Server
         public List<Lobby> PublicLobbies { get => AllLobbies.Where(item => !item.IsPrivate).ToList(); }
         public List<Lobby> AllLobbies { get => Lobbies.Select(x => Rooms[x].ToLobby()).ToList(); }
         public List<Room> PublicGames { get => Rooms.Where(item => !item.Value.IsPrivate && item.Value.Status == Room.Statuses.Playing).Select(item => item.Value).ToList(); }
-        public List<Room> AllGames { get => Rooms.Where(item => item.Value.Status == Room.Statuses.Playing).Select(item => item.Value).ToList(); }
+        public List<Room> AllGames => Rooms.Where(item => item.Value.Status == Room.Statuses.Playing).Select(item => item.Value).ToList();
 
         public const int MaxRooms = 100;
         public const int MaxLobbies = 10;
@@ -190,7 +190,8 @@ namespace JFadich.Pinochle.Server
         {
             if(actionEvent.Action is Engine.Actions.Deal)
             {
-                for (int i = 0; i < room.Game.PlayerCount; i++) {
+                for (int i = 0; i < room.Players.Length; i++) 
+                {
                     gameHub.Clients.Groups(room.Id + ":position:" + i).TurnTaken(room.Id, TurnTaken.FromEvent(actionEvent, Seat.ForPosition(i)));
                 }
             } else

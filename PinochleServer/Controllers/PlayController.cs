@@ -42,7 +42,8 @@ namespace JFadich.Pinochle.Server.Controllers
                 return NotFound();
             }
 
-            if(!Int32.TryParse(User.FindFirst("position")?.Value, out int position)) {
+            if(!Int32.TryParse(User.FindFirst("position")?.Value, out int position)) 
+            {
                 position = 0;
             }
 
@@ -54,8 +55,8 @@ namespace JFadich.Pinochle.Server.Controllers
         public IActionResult PlaceBid([FromBody] PlaceBid request)
         {
             string roomId = User.FindFirst("room")?.Value;
-
-            if (roomId == null)
+            
+            if (string.IsNullOrEmpty(roomId))
             {
                 return BadRequest("No Game Found");
             }
@@ -72,7 +73,7 @@ namespace JFadich.Pinochle.Server.Controllers
                 return BadRequest("invalid position");
             }
 
-            room.Game.TakeAction(new Engine.Actions.PlaceBid(Seat.ForPosition(position), request.Bid));
+            room.TakeAction(new Engine.Actions.PlaceBid(Seat.ForPosition(position), request.Bid));
 
             return Ok();
         }

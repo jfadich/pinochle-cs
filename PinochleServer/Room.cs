@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using JFadich.Pinochle.Engine;
+using JFadich.Pinochle.Engine.Actions;
 using JFadich.Pinochle.Engine.Contracts;
 using JFadich.Pinochle.Engine.Events;
 using JFadich.Pinochle.Server.Models;
@@ -24,15 +25,23 @@ namespace JFadich.Pinochle.Server
 
         public Player[] Players { get; }
 
-        public IPinochleGame Game { get; }
+        private IPinochleGame _game { get; }
+
+        public IPinochleGame Game
+        {
+            get
+            {
+                return _game; /* @todo convert to DTO */
+            }
+        }
 
         public bool IsPrivate { get; private set; }
 
         public Room(string id)
         {
-            Game = GameFactory.Make();
+            _game = GameFactory.Make();
             Id = id;
-            Players = new Player[Game.PlayerCount];
+            Players = new Player[_game.PlayerCount];
             Status = Statuses.Matchmaking;
         }
         public void MakePrivate()
@@ -102,14 +111,19 @@ namespace JFadich.Pinochle.Server
         {
             Status = Statuses.Playing;
 
-            Game.StartGame(startingPosition);
+            _game.StartGame(startingPosition);
 
             return true;
         }
 
+        public void TakeAction(PlayerAction action)
+        {
+            _game.TakeAction(action);
+        }
+
         public void AddGameListener(Action<GameEvent> listener)
         {
-            Game.AddGameListener(listener);
+            _game.AddGameListener(listener);
         }
     }
 }
