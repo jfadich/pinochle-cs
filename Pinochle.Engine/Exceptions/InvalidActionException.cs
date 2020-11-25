@@ -4,7 +4,7 @@ using System.Text;
 
 namespace JFadich.Pinochle.Engine.Exceptions
 {
-    class InvalidActionException : PinochleRuleViolationException
+    public class InvalidActionException : PinochleRuleViolationException
     {
         public InvalidActionException(string message) : base(message)
         {

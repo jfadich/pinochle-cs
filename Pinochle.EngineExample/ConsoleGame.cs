@@ -7,6 +7,8 @@ using JFadich.Pinochle.Engine.Cards;
 using JFadich.Pinochle.Engine.Events;
 using JFadich.Pinochle.Engine.Contracts;
 using JFadich.Pinochle.Engine;
+using JFadich.Pinochle.Engine.Exceptions;
+using JFadich.Pinochle.Engine.Events.CompletedPhases;
 
 namespace JFadich.Pinochle.PlayConsole
 {
@@ -51,7 +53,7 @@ namespace JFadich.Pinochle.PlayConsole
 
         protected void Auction()
         {
-            while (Game.IsCurrently(Phases.Bidding))
+            while (Game.IsPhase(Phases.Bidding))
             {
                 DrawHand();
                 Console.Write(String.Format("What does {0} bid? ", Game.ActivePlayer));
@@ -71,7 +73,7 @@ namespace JFadich.Pinochle.PlayConsole
                     Draw();
 
                 }
-                catch (Exceptions.PinochleRuleViolationException exception)
+                catch (PinochleRuleViolationException exception)
                 {
                     Console.WriteLine(exception.Message);
                 }
@@ -134,10 +136,9 @@ namespace JFadich.Pinochle.PlayConsole
 
         public void ShowMeld()
         {
-            foreach(Seat player in Game.AllPlayers())
+            foreach(Seat player in Game.AllPlayers)
             {
-
-                List<Meld>  meld = Game.GetPlayerMeld(player);
+                ICollection<Meld>  meld = Game.GetPlayerMeld(player);
 
                 Console.WriteLine("{0} Meld. {1} Points", player, meld.Sum(score => score.GetValue()));
                 Console.WriteLine(Game.GetPlayerHand(player));
@@ -157,7 +158,7 @@ namespace JFadich.Pinochle.PlayConsole
             Game.TakeAction(new PlayTrick(Game.ActivePlayer, trick));
             Draw();
 
-            while(Game.IsCurrently(Phases.Playing))
+            while(Game.IsPhase(Phases.Playing))
             {
 
                 trick = AskForACard(" Play a trick.");
@@ -166,7 +167,7 @@ namespace JFadich.Pinochle.PlayConsole
                 {
                     Game.TakeAction(new PlayTrick(Game.ActivePlayer, trick));
                     Draw();
-                } catch(Exceptions.IllegalTrickException e)
+                } catch(IllegalTrickException e)
                 {
                     Draw();
                     Console.WriteLine(e.Message);
@@ -181,15 +182,15 @@ namespace JFadich.Pinochle.PlayConsole
 
         protected PinochleCard[] AskForCards(string message, int numberOfCards)
         {
-            Hand hand = Game.GetPlayerHand();
+            IHand hand = Game.GetPlayerHand(Game.ActivePlayer);
 
             int j = 0;
-            foreach (Cards.PinochleCard card in hand.Cards)
+            foreach (PinochleCard card in hand.Cards)
             {
                 bool canPlay = true;
                 Console.ResetColor();
 
-                if (card.getColor() == Cards.PinochleCard.Color.Red)
+                if (card.getColor() == PinochleCard.Color.Red)
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
                 }
@@ -198,7 +199,7 @@ namespace JFadich.Pinochle.PlayConsole
                     Console.ForegroundColor = ConsoleColor.White;
                 }
 
-                if (Game.IsCurrently(Phases.Playing))
+                if (Game.IsPhase(Phases.Playing))
                 {
                     canPlay = Game.CanPlay(card);
 
@@ -227,7 +228,7 @@ namespace JFadich.Pinochle.PlayConsole
             {
                 string cardsInput = Console.ReadLine();
                 string[] cards = cardsInput.Split(" ");
-                selectedCards = new Cards.PinochleCard[numberOfCards];
+                selectedCards = new PinochleCard[numberOfCards];
 
                 if (cards.Length < numberOfCards)
                 {
@@ -264,7 +265,7 @@ namespace JFadich.Pinochle.PlayConsole
         protected void DrawHand()
         {
             Console.ResetColor();
-            foreach (PinochleCard card in Game.GetPlayerHand().Cards)
+            foreach (PinochleCard card in Game.GetPlayerHand(Game.ActivePlayer).Cards)
             {
                 if (card.getColor() == PinochleCard.Color.Red)
                 {
@@ -288,20 +289,20 @@ namespace JFadich.Pinochle.PlayConsole
             Console.Clear();
             Console.ResetColor();
 
-            GameScore score = Game.GetScore();
-            var roundScore = Game.GetRoundScore();
+       //     GameScore score = Game.GetScore();
+       //     var roundScore = Game.GetRoundScore();
             Console.Write("Phase " + Game.CurrentPhase.ToString());
             Console.Write(" | Current Player: " + Game.ActivePlayer);
-            Console.Write(string.Format(" | Team A: {0}", score.TeamA));
+        //    Console.Write(string.Format(" | Team A: {0}", score.TeamA));
             if(Game.CurrentPhase == Phases.Playing)
             {
-                Console.Write(string.Format(" (+{0})", roundScore.TeamA));
+        //        Console.Write(string.Format(" (+{0})", roundScore.TeamA));
             }
-            Console.Write(string.Format(" | Team B: {0}", score.TeamB));
+      //      Console.Write(string.Format(" | Team B: {0}", score.TeamB));
 
             if (Game.CurrentPhase == Phases.Playing)
             {
-                Console.Write(string.Format(" (+{0})", roundScore.TeamB));
+     //           Console.Write(string.Format(" (+{0})", roundScore.TeamB));
             }
             Console.WriteLine();
             Console.WriteLine("----------------------------------------------------------------------------------");
@@ -313,7 +314,7 @@ namespace JFadich.Pinochle.PlayConsole
 
             Console.WriteLine("----------------------------------------------------------------------------------");
 
-            if(Game.IsCurrently(Phases.Playing))
+            if(Game.IsPhase(Phases.Playing))
             {
                 if(CurrentTrick != null)
                 {
@@ -356,7 +357,7 @@ namespace JFadich.Pinochle.PlayConsole
 
             if(gameEvent is PhaseCompleted completed)
             {
-                if(completed is Events.CompletedPhases.PlayingCompleted)
+                if(completed is PlayingCompleted)
                 {
                     foreach (Phases phase in Enum.GetValues(typeof(Phases)))
                     {

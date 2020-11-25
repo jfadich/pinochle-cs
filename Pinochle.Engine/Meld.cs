@@ -5,7 +5,7 @@ using JFadich.Pinochle.Engine.Cards;
 
 namespace JFadich.Pinochle.Engine
 {
-    class Meld
+    public class Meld
     {
         private int Value;
 

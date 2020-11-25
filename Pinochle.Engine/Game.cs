@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using JFadich.Pinochle.Engine.Cards;
 using JFadich.Pinochle.Engine.Events.CompletedPhases;
 using JFadich.Pinochle.Engine.Actions;
+using System.Linq;
+using JFadich.Pinochle.Engine.Contracts;
 
 namespace JFadich.Pinochle.Engine
 {
@@ -10,15 +12,19 @@ namespace JFadich.Pinochle.Engine
     {
         private event Action<Events.GameEvent> GameEvents;
 
-        private Seat[] Players;
+        private readonly Seat[] _players;
 
         private Round CurrentRound;
 
         public GameScore Score { get; }
+
+        public ICollection<Seat> AllPlayers { get => _players.ToList(); }
+
+
         public Phases CurrentPhase { get => CurrentRound == null ? Phases.Dealing : CurrentRound.Phase; }
 
         public Seat ActivePlayer {
-            get { return Players[activePosition]; }
+            get { return _players[activePosition]; }
             private set { activePosition = value.Position; }
         }
 
@@ -39,7 +45,7 @@ namespace JFadich.Pinochle.Engine
 
         public bool HasStarted;
 
-        public bool IsCompleted;
+        public bool IsCompleted { get; private set; }
 
         public int PlayerCount { get => NumberOfPlayers; }
 
@@ -47,7 +53,7 @@ namespace JFadich.Pinochle.Engine
 
         public Game()
         {
-            Players = new Seat[NumberOfPlayers];
+            _players = new Seat[NumberOfPlayers];
             Score = new GameScore();
             HasStarted = false;
             IsCompleted = false;
@@ -59,9 +65,9 @@ namespace JFadich.Pinochle.Engine
             activePosition = StartingPosition = startingPosition;
 
 
-            for(int i = 0;  i < Players.Length; i++)
+            for(int i = 0;  i < _players.Length; i++)
             {
-                Players[i] = Seat.ForPosition(i);
+                _players[i] = Seat.ForPosition(i);
             }
 
             HasStarted = true;
@@ -79,7 +85,7 @@ namespace JFadich.Pinochle.Engine
 
         public void TakeAction(PlayerAction action)
         {
-            if (!IsCurrently(action.Phase))
+            if (!IsPhase(action.Phase))
             {
                 throw new Exceptions.InvalidActionException("Game is not currently " + action.Phase);
             }
@@ -94,7 +100,7 @@ namespace JFadich.Pinochle.Engine
 
                 GameEvents?.Invoke(new Events.ActionTaken(action, ActivePlayer));
 
-                if(!IsCurrently(action.Phase))
+                if(!IsPhase(action.Phase))
                 {
                     CompletePhase(action);
                 }
@@ -103,18 +109,18 @@ namespace JFadich.Pinochle.Engine
 
         private void AdvancePlayer()
         {
-            if (IsCurrently(Phases.Bidding))
+            if (IsPhase(Phases.Bidding))
             {
                 do
                 {
                     SetNextPlayer();
                 } while (CurrentRound.Auction.PlayerHasPassed(ActivePlayer));
             }
-            else if (IsCurrently(Phases.Calling) || IsCurrently(Phases.Passing))
+            else if (IsPhase(Phases.Calling) || IsPhase(Phases.Passing))
             {
                 SetNextPlayer(1);
             } 
-            else if (IsCurrently(Phases.Playing)) 
+            else if (IsPhase(Phases.Playing)) 
             {
                 if(CurrentRound.Arena != null)
                 {
@@ -145,13 +151,13 @@ namespace JFadich.Pinochle.Engine
             }
             else if (completedPhase == Phases.Bidding)
             {
-                GameEvents?.Invoke(new BiddingCompleted(Players[CurrentRound.Auction.WinningPosition], CurrentRound.Auction.WinningBid));
+                GameEvents?.Invoke(new BiddingCompleted(_players[CurrentRound.Auction.WinningPosition], CurrentRound.Auction.WinningBid));
 
-                ActivePlayer = Players[CurrentRound.Auction.WinningPosition];
+                ActivePlayer = _players[CurrentRound.Auction.WinningPosition];
             }
             else if(completedPhase == Phases.Calling)
             {
-                GameEvents?.Invoke(new CallingCompleted(Players[CurrentRound.Auction.WinningPosition], CurrentRound.Trump));
+                GameEvents?.Invoke(new CallingCompleted(_players[CurrentRound.Auction.WinningPosition], CurrentRound.Trump));
 
             }
             else if(completedPhase == Phases.Passing)
@@ -172,26 +178,27 @@ namespace JFadich.Pinochle.Engine
             }
         }
 
-        public bool IsCurrently(Phases phase) => (CurrentRound.Phase == phase);
+        public bool IsPhase(Phases phase) => (CurrentRound.Phase == phase);
 
-        public Hand GetPlayerHand(Seat player)
+        public IHand GetPlayerHand(Seat player)
         {
             return CurrentRound.PlayerHand(player);
         }
 
-        public Seat[] AllPlayers()
-        {
-            return Players;
-        }
-
-        public List<Meld> GetPlayerMeld(Seat player)
+        public ICollection<Meld> GetPlayerMeld(Seat player)
         {
             return CurrentRound.MeldScore[player.Position];
         }
 
         public bool CanPlay(PinochleCard card)
         {
-            return CurrentRound.Arena.CanPlay(card, GetPlayerHand());
+            switch (CurrentPhase)
+            {
+                case Phases.Playing:
+                    return CurrentRound.Arena.CanPlay(card, GetPlayerHand());
+                default:
+                    return false;
+            }
         }
 
 
@@ -207,7 +214,7 @@ namespace JFadich.Pinochle.Engine
 
         private void CalculateMeld()
         {
-            foreach (Seat player in Players)
+            foreach (Seat player in _players)
             {
                 CurrentRound.CalculateMeld(player);
             }
@@ -257,7 +264,7 @@ namespace JFadich.Pinochle.Engine
                 return null;
             }
 
-            return Players[position];
+            return _players[position];
         }
 
         public Hand GetPlayerHand()

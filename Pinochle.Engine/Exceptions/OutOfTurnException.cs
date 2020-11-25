@@ -4,7 +4,7 @@ using System.Text;
 
 namespace JFadich.Pinochle.Engine.Exceptions
 {
-    class OutOfTurnException : PinochleRuleViolationException
+    public class OutOfTurnException : PinochleRuleViolationException
     {
         public OutOfTurnException(string message) : base(message)
         {

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace JFadich.Pinochle.Engine
 {
@@ -28,6 +26,7 @@ namespace JFadich.Pinochle.Engine
         }
 
         public int NextPosition(int sameTeam = 0) => (Position + 1 + sameTeam) & 3;
+
         public Seat PartnerSeat() => new Seat(NextPosition(1));
 
         public override string ToString()
