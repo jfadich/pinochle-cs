@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Engine\Pinochle.Engine.csproj" />
+    <ProjectReference Include="..\Pinochle.Engine\Pinochle.Engine.csproj" />
   </ItemGroup>
 
 </Project>
