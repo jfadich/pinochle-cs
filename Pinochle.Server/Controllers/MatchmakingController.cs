@@ -9,11 +9,14 @@ using JFadich.Pinochle.Server.Models;
 using Microsoft.AspNetCore.Authorization;
 using JFadich.Pinochle.Server.Requests;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
+using System.Net.Mime;
 
 namespace JFadich.Pinochle.Server.Controllers
 {
     [Authorize]
     [ApiController]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [Route("games/[controller]")]
     public class MatchmakingController : ControllerBase
     {
@@ -28,14 +31,18 @@ namespace JFadich.Pinochle.Server.Controllers
         }
 
         [HttpGet]
-        public List<Lobby> Index([FromServices] GameManager games)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public ActionResult<List<Room>> Index([FromServices] GameManager games)
         {
-            return games.PublicLobbies;
+            return this.Ok(games.PublicLobbies);
         }
 
         [Authorize(Roles = "Administrator,Coordinator")]
         [HttpPost]
-        public IActionResult Matchmaking([FromBody] JoinRequest join)
+        [Consumes(MediaTypeNames.Application.Json)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public ActionResult<Room> Matchmaking([FromBody] JoinRequest join)
         {
             var lobby = _gameManager.FindLobbyForPlayer(join.PlayerId);
 
@@ -49,9 +56,11 @@ namespace JFadich.Pinochle.Server.Controllers
 
         [Authorize(Roles = "Administrator")]
         [HttpGet("all")]
-        public List<Lobby> All()
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public ActionResult<List<Room>> All()
         {
-            return _gameManager.AllLobbies;
+            return this.Ok(_gameManager.AllLobbies);
         }
 
         [Authorize(Roles = "Administrator,Player,Coordinator")]
@@ -74,7 +83,11 @@ namespace JFadich.Pinochle.Server.Controllers
 
         [Authorize(Roles = "Coordinator")]
         [HttpPost("{id}/join")]
-        public IActionResult AddToRoom(string id, [FromBody] JoinRequest join)
+        [Consumes(MediaTypeNames.Application.Json)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult<Room> AddToRoom(string id, [FromBody] JoinRequest join)
         {
             if(!_gameManager.HasLobby(id))
             {

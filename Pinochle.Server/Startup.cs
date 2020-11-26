@@ -12,6 +12,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using NSwag;
+using NSwag.Generation.Processors.Security;
 
 namespace JFadich.Pinochle.Server
 {
@@ -31,6 +33,20 @@ namespace JFadich.Pinochle.Server
             {
                 options.JsonSerializerOptions.Converters.Add(new Converters.SeatConverter());
                 options.JsonSerializerOptions.Converters.Add(new Converters.PinochleCardConverter());
+            });
+
+            services.AddOpenApiDocument(settings =>
+            {
+                settings.AddSecurity("bearer", Enumerable.Empty<string>(), new OpenApiSecurityScheme
+                {
+                    Type = OpenApiSecuritySchemeType.ApiKey,
+                    Name = "Authorization",
+                    In = OpenApiSecurityApiKeyLocation.Header,
+                    Description = "Type into the textbox: Bearer {your JWT token}."
+                });
+
+                settings.OperationProcessors.Add(
+                    new AspNetCoreOperationSecurityScopeProcessor("bearer"));
             });
 
             services.AddAuthentication(x =>
@@ -99,6 +115,9 @@ namespace JFadich.Pinochle.Server
                       .WithOrigins(Configuration["Jwt:Iss"])
                       .AllowCredentials();
             });
+
+            app.UseOpenApi();
+            app.UseSwaggerUi3();
 
             app.UseAuthorization();
 

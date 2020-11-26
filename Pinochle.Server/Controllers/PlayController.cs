@@ -8,12 +8,16 @@ using JFadich.Pinochle.Engine;
 using JFadich.Pinochle.Server.Models;
 using Microsoft.AspNetCore.Authorization;
 using JFadich.Pinochle.Server.Requests;
+using Microsoft.AspNetCore.Http;
+using System.Net.Mime;
 
 namespace JFadich.Pinochle.Server.Controllers
 {
     [ApiController]
-    [Route("[controller]/{action}")]
+    [Route("api/play")]
     [Authorize(Roles = "Player")]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public class PlayController : ControllerBase
     {
         private readonly ILogger<GamesController> _logger;
@@ -26,6 +30,8 @@ namespace JFadich.Pinochle.Server.Controllers
             _logger = logger;
         }
 
+        [HttpPost("start")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         public IActionResult Start()
         {
             string roomId = User.FindFirst("room")?.Value;
@@ -49,9 +55,12 @@ namespace JFadich.Pinochle.Server.Controllers
 
             room.StartGame(position);
 
-            return Ok();
+            return NoContent();
         }
 
+        [HttpPost("bid")]
+        [Consumes(MediaTypeNames.Application.Json)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         public IActionResult PlaceBid([FromBody] PlaceBid request)
         {
             string roomId = User.FindFirst("room")?.Value;
