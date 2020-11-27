@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace JFadich.Pinochle.Server.Requests
 {
-    public class PlaceBid
+    public class BidRequest
     {
         public int Bid { get; set; }
     }

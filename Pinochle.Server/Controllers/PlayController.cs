@@ -1,15 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using JFadich.Pinochle.Engine;
-using JFadich.Pinochle.Server.Models;
 using Microsoft.AspNetCore.Authorization;
 using JFadich.Pinochle.Server.Requests;
 using Microsoft.AspNetCore.Http;
 using System.Net.Mime;
+using JFadich.Pinochle.Engine.Actions;
+using JFadich.Pinochle.Engine.Contracts;
 
 namespace JFadich.Pinochle.Server.Controllers
 {
@@ -31,60 +29,99 @@ namespace JFadich.Pinochle.Server.Controllers
         }
 
         [HttpPost("start")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status202Accepted)]
         public IActionResult Start()
         {
-            string roomId = User.FindFirst("room")?.Value;
+            (Room room, Seat seat) = GetRoomAndSeat();
 
-            if (roomId == null)
-            {
-                return BadRequest("No Game Found");
-            }
+            room.StartGame(seat.Position);
 
-            var room = _rooms.GetRoom(roomId);
+            return Accepted();
+        }
 
-            if (room == null)
-            {
-                return NotFound();
-            }
+        [HttpGet("hand")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Engine.Cards.PinochleCard[]))]
+        public IActionResult GetHand()
+        {
+            (Room room, Seat seat) = GetRoomAndSeat();
 
-            if(!Int32.TryParse(User.FindFirst("position")?.Value, out int position)) 
-            {
-                position = 0;
-            }
-
-            room.StartGame(position);
-
-            return NoContent();
+            return Ok(room.Game.GetPlayerHand(seat)?.Cards);
         }
 
         [HttpPost("bid")]
         [Consumes(MediaTypeNames.Application.Json)]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        public IActionResult PlaceBid([FromBody] PlaceBid request)
+        [ProducesResponseType(StatusCodes.Status202Accepted)]
+        [ProducesResponseType(typeof(void), StatusCodes.Status400BadRequest)]
+        public IActionResult PlaceBid([FromBody] BidRequest request)
+        {
+            (Room room, Seat seat) = GetRoomAndSeat();
+            
+            room.TakeAction(new PlaceBid(seat, request.Bid));
+
+            return Accepted();
+        }
+
+        [HttpPost("call_trump")]
+        [Consumes(MediaTypeNames.Application.Json)]
+        [ProducesResponseType(StatusCodes.Status202Accepted)]
+        [ProducesResponseType(typeof(void), StatusCodes.Status400BadRequest)]
+        public IActionResult CallTrump([FromBody] CallTrumpRequest request)
+        {
+            (Room room, Seat seat) = GetRoomAndSeat();
+
+            room.TakeAction(new CallTrump(seat, request.Trump));
+
+            return Accepted();
+        }
+
+        [HttpPost("pass_cards")]
+        [Consumes(MediaTypeNames.Application.Json)]
+        [ProducesResponseType(StatusCodes.Status202Accepted)]
+        [ProducesResponseType(typeof(void), StatusCodes.Status400BadRequest)]
+        public IActionResult PassCards([FromBody] PassCardsRequest request)
+        {
+            (Room room, Seat seat) = GetRoomAndSeat();
+
+            room.TakeAction(new PassCards(seat, request.Cards));
+
+            return Accepted();
+        }
+
+        [HttpPost("play_trick")]
+        [Consumes(MediaTypeNames.Application.Json)]
+        [ProducesResponseType(StatusCodes.Status202Accepted)]
+        [ProducesResponseType(typeof(void), StatusCodes.Status400BadRequest)]
+        public IActionResult PlayTrick([FromBody] PlayTrickRequest request)
+        {
+            (Room room, Seat seat) = GetRoomAndSeat();
+
+            room.TakeAction(new PlayTrick(seat, request.Trick));
+
+            return Accepted();
+        }
+
+        private (Room, Seat) GetRoomAndSeat()
         {
             string roomId = User.FindFirst("room")?.Value;
-            
+
             if (string.IsNullOrEmpty(roomId))
             {
-                return BadRequest("No Game Found");
+                throw new Exception("Invalid room id.");
             }
 
             var room = _rooms.GetRoom(roomId);
 
             if (room == null)
             {
-                return NotFound();
+                throw new Exception("Room not found");
             }
 
             if (!Int32.TryParse(User.FindFirst("position")?.Value, out int position))
             {
-                return BadRequest("invalid position");
+                throw new Exception("Invalid position");
             }
 
-            room.TakeAction(new Engine.Actions.PlaceBid(Seat.ForPosition(position), request.Bid));
-
-            return Ok();
+            return (room, Seat.ForPosition(position));
         }
     }
 }
