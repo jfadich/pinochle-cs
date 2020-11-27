@@ -35,7 +35,7 @@ namespace JFadich.Pinochle.Server.Controllers
 
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public ActionResult<List<Room>> Index()
+        public ActionResult<List<GameRoom>> Index()
         {
             return this.Ok(_gameManager.PublicLobbies);
         }
@@ -45,7 +45,7 @@ namespace JFadich.Pinochle.Server.Controllers
         [Consumes(MediaTypeNames.Application.Json)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public ActionResult<Room> Matchmaking([FromBody] MatchmakingRequest join)
+        public ActionResult<GameRoom> Matchmaking([FromBody] MatchmakingRequest join)
         {
             var lobby = _gameManager.FindLobbyForPlayer(join.PlayerId);
 
@@ -61,7 +61,7 @@ namespace JFadich.Pinochle.Server.Controllers
         [HttpGet("all")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public ActionResult<List<Room>> All()
+        public ActionResult<List<GameRoom>> All()
         {
             return this.Ok(_gameManager.AllLobbies);
         }
@@ -90,7 +90,7 @@ namespace JFadich.Pinochle.Server.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<Room> AddToRoom(string id, [FromBody] JoinRequest join)
+        public ActionResult<GameRoom> AddToRoom(string id, [FromBody] JoinRequest join)
         {
             if(!_gameManager.HasLobby(id))
             {
@@ -102,7 +102,7 @@ namespace JFadich.Pinochle.Server.Controllers
                 return BadRequest();
             }
 
-            return Ok(_gameManager.GetRoom(id).ToLobby());
+            return Ok(_gameManager.GetRoom(id));
         }
     }
 }

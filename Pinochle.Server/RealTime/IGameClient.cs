@@ -2,20 +2,20 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using JFadich.Pinochle.Engine;
 using JFadich.Pinochle.Engine.Cards;
-using JFadich.Pinochle.Engine.Events;
-using JFadich.Pinochle.Server.Models;
+using JFadich.Pinochle.Engine.Models;
 using PinochleServer.Models;
 
 namespace JFadich.Pinochle.Server.RealTime
 {
     public interface IGameClient
     {
-        Task AddedRoom(Room room);
+        Task AddedRoom(GameRoom room);
         Task PlayerJoined(string roomId, Player player);
         Task ClosedLobby(string roomId, string reason);
 
-        Task GameStarted(string roomId, Room room);
+        Task GameStarted(string roomId, GameRoom room);
 
         Task TurnTaken(string roomId, TurnTaken turn);
 

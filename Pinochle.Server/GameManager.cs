@@ -10,20 +10,21 @@ using JFadich.Pinochle.Server.RealTime;
 using JFadich.Pinochle.Engine.Events;
 using PinochleServer.Models;
 using JFadich.Pinochle.Engine.Tricks;
+using JFadich.Pinochle.Engine.Models;
 
 namespace JFadich.Pinochle.Server
 {
     public class GameManager
     {
-        private readonly ConcurrentDictionary<string, Room> Rooms = new ConcurrentDictionary<string, Room>();
+        private readonly ConcurrentDictionary<string, GameRoom> Rooms = new ConcurrentDictionary<string, GameRoom>();
         private readonly List<string> Lobbies = new List<string>(); // list of room Ids that are open for new players
         private readonly ConcurrentDictionary<string, string> Players = new ConcurrentDictionary<string, string>(); // [playerId => gameId]
 
         private IHubContext<GameHub, IGameClient> gameHub;
-        public List<Lobby> PublicLobbies { get => AllLobbies.Where(item => !item.IsPrivate).ToList(); }
-        public List<Lobby> AllLobbies { get => Lobbies.Select(x => Rooms[x].ToLobby()).ToList(); }
-        public List<Room> PublicGames { get => Rooms.Where(item => !item.Value.IsPrivate && item.Value.Status == Room.Statuses.Playing).Select(item => item.Value).ToList(); }
-        public List<Room> AllGames => Rooms.Where(item => item.Value.Status == Room.Statuses.Playing).Select(item => item.Value).ToList();
+        public List<GameRoom> PublicLobbies { get => AllLobbies.Where(item => !item.IsPrivate).ToList(); }
+        public List<GameRoom> AllLobbies { get => Lobbies.Select(x => Rooms[x]).ToList(); }
+        public List<GameRoom> PublicGames { get => Rooms.Where(item => !item.Value.IsPrivate && item.Value.Status == GameRoom.Statuses.Playing).Select(item => item.Value).ToList(); }
+        public List<GameRoom> AllGames => Rooms.Where(item => item.Value.Status == GameRoom.Statuses.Playing).Select(item => item.Value).ToList();
 
         public const int MaxRooms = 100;
         public const int MaxLobbies = 10;
@@ -33,7 +34,7 @@ namespace JFadich.Pinochle.Server
             gameHub = gameClients;
         }
 
-        public Room GetPlayersRoom(string playerId)
+        public GameRoom GetPlayersRoom(string playerId)
         {
             if (Players.TryGetValue(playerId, out string roomId))
             {
@@ -43,9 +44,9 @@ namespace JFadich.Pinochle.Server
             return null;
         }
 
-        public Room GetRoom(string id)
+        public GameRoom GetRoom(string id)
         {
-            Rooms.TryGetValue(id, out Room room);
+            Rooms.TryGetValue(id, out GameRoom room);
 
             return room;
         }
@@ -55,7 +56,7 @@ namespace JFadich.Pinochle.Server
             return Lobbies.Contains(id);
         }
 
-        public Room NewRoom(bool isPrivate)
+        public GameRoom NewRoom(bool isPrivate)
         {
             if( Rooms.Count >= MaxRooms || Lobbies.Count >= MaxLobbies)
             {
@@ -64,7 +65,7 @@ namespace JFadich.Pinochle.Server
 
             string id = Guid.NewGuid().ToString("N");
 
-            var room = new Room(id, isPrivate);
+            var room = new GameRoom(id, isPrivate);
 
             if(Rooms.TryAdd(id, room))
             {
@@ -77,11 +78,11 @@ namespace JFadich.Pinochle.Server
             return null;
         }
 
-        public Lobby FindLobbyForPlayer(string playerId)
+        public GameRoom FindLobbyForPlayer(string playerId)
         {
             if (Players.ContainsKey(playerId))
             {
-                return GetRoom(Players[playerId]).ToLobby();
+                return GetRoom(Players[playerId]);
             }
 
             foreach (var lobby in AllLobbies)
@@ -92,83 +93,42 @@ namespace JFadich.Pinochle.Server
                 }
             }
 
-            Room newRoom = NewRoom(false);
+            GameRoom newRoom = NewRoom(false);
 
             if(newRoom != null && AddPlayerToRoom(newRoom.Id, playerId))
             {
-                return newRoom.ToLobby();
+                return newRoom;
             }
 
             return null;
         }
 
-        public bool AddPlayerToRoom(string roomId, string playerId)
+        public bool AddPlayerToRoom(string roomId, string playerId, int? position = null)
         {
+            if (Players.ContainsKey(playerId))
+            {
+                return Players[playerId] == roomId;
+            }
+
             var room = GetRoom(roomId);
 
-            if(room == null)
+            if(room == null || !room.AddPlayer(playerId, position))
             {
                 return false;
             }
 
-            int position = room.GetOpenPosition();
-
-            if(position == -1)
-            {
-                return false;
-            }
-
-            return AddPlayerToRoom(roomId, new Player()
-            {
-                Id = playerId,
-                Seat = Seat.ForPosition(position)
-            });
-        }
-        public bool AddPlayerToRoom(string lobbyId, string playerId, int? position)
-        {
-            if (position == null)
-            {
-                return AddPlayerToRoom(lobbyId, playerId);
-            }
-
-            return AddPlayerToRoom(lobbyId, new Player()
-            {
-                Id = playerId,
-                Seat = Seat.ForPosition((int)position)
-            }); ;
-        }
-
-        public bool AddPlayerToRoom(string id, Player player)
-        {
-            if (Players.ContainsKey(player.Id))
-            {
-                if(Players[player.Id] == id)
-                {
-                    return true;
-                }
-
-                return false;
-            }
-
-            var room = GetRoom(id);
-
-            if(room == null || !room.AddPlayer(player))
-            {
-                return false;
-            }
-
-            Players[player.Id] = id;
-            gameHub.Clients.Groups(room.Id, Audiences.Matchmaking).PlayerJoined(room.Id, player);
+            Players[playerId] = roomId;
+            gameHub.Clients.Groups(room.Id, Audiences.Matchmaking).PlayerJoined(room.Id, room.GetPlayer(playerId));
 
             if (room.IsFull())
             {
-                StartGame(room, player); // @todo 
+                StartGame(room); // @todo 
             }
 
             return true;
         }
 
-        private bool StartGame(Room room, Player startingPlayer)
+        private bool StartGame(GameRoom room)
         {
             Lobbies.Remove(room.Id);
 
@@ -181,10 +141,10 @@ namespace JFadich.Pinochle.Server
 
             gameHub.Clients.Groups(room.Id, Audiences.AllGames).GameStarted(room.Id, room);
 
-            return room.StartGame(startingPlayer.Id);
+            return room.StartGame();
         }
 
-        private void HandleGameEvent(Room room, GameEvent gameEvent)
+        private void HandleGameEvent(GameRoom room, GameEvent gameEvent)
         {
             if (gameEvent is ActionTaken action)
             {
@@ -197,7 +157,7 @@ namespace JFadich.Pinochle.Server
             }
         }
 
-        private void BroadcastActionTaken(Room room, ActionTaken actionEvent)
+        private void BroadcastActionTaken(GameRoom room, ActionTaken actionEvent)
         {
             if(actionEvent.Action is Engine.Actions.Deal)
             {

@@ -29,10 +29,10 @@ namespace JFadich.Pinochle.Server.Controllers
         }
 
         [HttpGet("hand")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Engine.Cards.PinochleCard[]))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(int[]))]
         public IActionResult GetHand()
         {
-            (Room room, string playerId) = GetRoomAndPlayerId();
+            (GameRoom room, string playerId) = GetRoomAndPlayerId();
 
             return Ok(room.GetPlayerHand(playerId)?.Cards);
         }
@@ -43,7 +43,7 @@ namespace JFadich.Pinochle.Server.Controllers
         [ProducesResponseType(typeof(void), StatusCodes.Status400BadRequest)]
         public IActionResult PlaceBid([FromBody] BidRequest request)
         {
-            (Room room, string playerId) = GetRoomAndPlayerId();
+            (GameRoom room, string playerId) = GetRoomAndPlayerId();
 
             room.PlaceBid(playerId, request.Bid);
 
@@ -56,7 +56,7 @@ namespace JFadich.Pinochle.Server.Controllers
         [ProducesResponseType(typeof(void), StatusCodes.Status400BadRequest)]
         public IActionResult CallTrump([FromBody] CallTrumpRequest request)
         {
-            (Room room, string playerId) = GetRoomAndPlayerId();
+            (GameRoom room, string playerId) = GetRoomAndPlayerId();
 
             room.CallTrump(playerId, request.Trump);
 
@@ -69,7 +69,7 @@ namespace JFadich.Pinochle.Server.Controllers
         [ProducesResponseType(typeof(void), StatusCodes.Status400BadRequest)]
         public IActionResult PassCards([FromBody] PassCardsRequest request)
         {
-            (Room room, string playerId) = GetRoomAndPlayerId();
+            (GameRoom room, string playerId) = GetRoomAndPlayerId();
 
             room.PassCards(playerId, request.Cards);
 
@@ -82,14 +82,14 @@ namespace JFadich.Pinochle.Server.Controllers
         [ProducesResponseType(typeof(void), StatusCodes.Status400BadRequest)]
         public IActionResult PlayTrick([FromBody] PlayTrickRequest request)
         {
-            (Room room, string playerId) = GetRoomAndPlayerId();
+            (GameRoom room, string playerId) = GetRoomAndPlayerId();
 
             room.PlayTrick(playerId, request.Trick);
 
             return Accepted();
         }
 
-        private (Room, string) GetRoomAndPlayerId()
+        private (GameRoom, string) GetRoomAndPlayerId()
         {
             string playerId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
@@ -98,7 +98,7 @@ namespace JFadich.Pinochle.Server.Controllers
                 throw new Exception("Invalid player id.");
             }
 
-            Room room = _rooms.GetPlayersRoom(playerId);
+            GameRoom room = _rooms.GetPlayersRoom(playerId);
 
             if (room == null)
             {

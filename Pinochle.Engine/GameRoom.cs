@@ -1,18 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using JFadich.Pinochle.Engine;
 using JFadich.Pinochle.Engine.Actions;
 using JFadich.Pinochle.Engine.Cards;
 using JFadich.Pinochle.Engine.Contracts;
 using JFadich.Pinochle.Engine.Events;
 using JFadich.Pinochle.Engine.Exceptions;
-using JFadich.Pinochle.Server.Models;
+using JFadich.Pinochle.Engine.Models;
 
-namespace JFadich.Pinochle.Server
+namespace JFadich.Pinochle.Engine
 {
-    public class Room
+    public class GameRoom
     {
         public Statuses Status { get; private set; }
 
@@ -29,11 +25,11 @@ namespace JFadich.Pinochle.Server
 
         private IPinochleGame _game { get; }
 
-        public bool IsPrivate { get;}
+        public bool IsPrivate { get; }
 
-        public Room(string id) : this(id, false) {  }
+        public GameRoom(string id) : this(id, false) {  }
 
-        public Room(string id, bool isPrivate)
+        public GameRoom(string id, bool isPrivate)
         {
             _game = GameFactory.Make();
             Id = id;
@@ -42,8 +38,20 @@ namespace JFadich.Pinochle.Server
             Status = Statuses.Matchmaking;
         }
 
-        public bool AddPlayer(Player player)
+        public bool AddPlayer(string playerId, int? position = null)
         {
+            if(position is null)
+            {
+                position = GetOpenPosition();
+
+                if(position == -1)
+                {
+                    return false;
+                }
+            }
+
+            Player player = new Player() { Id = playerId, Seat = Seat.ForPosition((int)position) };
+
             if (!CanSeat(player))
             {
                 return false;
@@ -61,10 +69,18 @@ namespace JFadich.Pinochle.Server
                 return false;
             }
 
+            foreach (var player in Players)
+            {
+                if (player != null && player.Id == p.Id)
+                {
+                    return false;
+                }
+            }
+
             return !IsFull();
         }
 
-        private Player GetPlayer(string playerId)
+        public Player GetPlayer(string playerId)
         {
             foreach (var player in Players)
             {
@@ -77,7 +93,7 @@ namespace JFadich.Pinochle.Server
             throw new InvalidActionException(string.Format("Player '{0}' is not in Room '{1}", playerId, this.Id));
         }
 
-        public int GetOpenPosition()
+        private int GetOpenPosition()
         {
             for (int i = 0; i < Players.Length; i++)
             {
@@ -95,22 +111,9 @@ namespace JFadich.Pinochle.Server
             return GetOpenPosition() == -1;
         }
 
-        public Lobby ToLobby()
+        public bool StartGame()
         {
-            return new Lobby(Id, Players, IsPrivate);
-        }
-
-        public bool StartGame(string playerId = null)
-        {
-            if (string.IsNullOrEmpty(playerId))
-            {
-                _game.StartGame(_game.ActivePlayer.Position);
-            }
-            else
-            {
-                Player player = GetPlayer(playerId);
-                _game.StartGame(player.Seat.Position);
-            }
+            _game.StartGame();
 
             Status = Statuses.Playing;
 

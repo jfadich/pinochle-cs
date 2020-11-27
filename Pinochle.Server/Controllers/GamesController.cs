@@ -40,7 +40,7 @@ namespace JFadich.Pinochle.Server.Controllers
         [Authorize(Roles = "Administrator")]
         [HttpGet("all")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public ActionResult<List<Room>> All()
+        public ActionResult<List<GameRoom>> All()
         {
             return this.Ok(games.AllGames);
         }
@@ -55,7 +55,7 @@ namespace JFadich.Pinochle.Server.Controllers
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(void), StatusCodes.Status404NotFound)]
-        public ActionResult<Room> Get(string id)
+        public ActionResult<GameRoom> Get(string id)
         {
             if ((User.IsInRole("Player") || User.IsInRole("Observer")) && User.FindFirst("room")?.Value != id)
             {
