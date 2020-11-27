@@ -177,7 +177,7 @@ namespace JFadich.Pinochle.Engine
 
         public IHand GetPlayerHand(Seat player)
         {
-            return CurrentRound.PlayerHand(player);
+            return CurrentRound?.PlayerHand(player);
         }
 
         public ICollection<Meld> GetPlayerMeld(Seat player)

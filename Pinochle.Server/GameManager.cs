@@ -9,6 +9,7 @@ using System.Collections.Concurrent;
 using JFadich.Pinochle.Server.RealTime;
 using JFadich.Pinochle.Engine.Events;
 using PinochleServer.Models;
+using JFadich.Pinochle.Engine.Tricks;
 
 namespace JFadich.Pinochle.Server
 {
@@ -32,6 +33,16 @@ namespace JFadich.Pinochle.Server
             gameHub = gameClients;
         }
 
+        public Room GetPlayersRoom(string playerId)
+        {
+            if (Players.TryGetValue(playerId, out string roomId))
+            {
+                return GetRoom(roomId);
+            }
+
+            return null;
+        }
+
         public Room GetRoom(string id)
         {
             Rooms.TryGetValue(id, out Room room);
@@ -53,12 +64,7 @@ namespace JFadich.Pinochle.Server
 
             string id = Guid.NewGuid().ToString("N");
 
-            var room = new Room(id);
-
-            if(isPrivate)
-            {
-                room.MakePrivate();
-            }
+            var room = new Room(id, isPrivate);
 
             if(Rooms.TryAdd(id, room))
             {
@@ -156,13 +162,13 @@ namespace JFadich.Pinochle.Server
 
             if (room.IsFull())
             {
-                StartGame(room, 0); // @todo 
+                StartGame(room, player); // @todo 
             }
 
             return true;
         }
 
-        private bool StartGame(Room room, int startingPosition)
+        private bool StartGame(Room room, Player startingPlayer)
         {
             Lobbies.Remove(room.Id);
 
@@ -175,7 +181,7 @@ namespace JFadich.Pinochle.Server
 
             gameHub.Clients.Groups(room.Id, Audiences.AllGames).GameStarted(room.Id, room);
 
-            return room.StartGame(startingPosition);
+            return room.StartGame(startingPlayer.Id);
         }
 
         private void HandleGameEvent(Room room, GameEvent gameEvent)
@@ -183,6 +189,11 @@ namespace JFadich.Pinochle.Server
             if (gameEvent is ActionTaken action)
             {
                 BroadcastActionTaken(room, action);
+            }
+
+            if(gameEvent is PhaseCompleted phaseCompleted)
+            {
+
             }
         }
 
@@ -192,6 +203,7 @@ namespace JFadich.Pinochle.Server
             {
                 for (int i = 0; i < room.Players.Length; i++) 
                 {
+                    // todo Groups(...).RecieveCards()
                     gameHub.Clients.Groups(room.Id + ":position:" + i).TurnTaken(room.Id, TurnTaken.FromEvent(actionEvent, Seat.ForPosition(i)));
                 }
             } else

@@ -7,7 +7,7 @@ using JFadich.Pinochle.Server.Requests;
 using Microsoft.AspNetCore.Http;
 using System.Net.Mime;
 using JFadich.Pinochle.Engine.Actions;
-using JFadich.Pinochle.Engine.Contracts;
+using JFadich.Pinochle.Server.Models;
 
 namespace JFadich.Pinochle.Server.Controllers
 {
@@ -28,24 +28,13 @@ namespace JFadich.Pinochle.Server.Controllers
             _logger = logger;
         }
 
-        [HttpPost("start")]
-        [ProducesResponseType(StatusCodes.Status202Accepted)]
-        public IActionResult Start()
-        {
-            (Room room, Seat seat) = GetRoomAndSeat();
-
-            room.StartGame(seat.Position);
-
-            return Accepted();
-        }
-
         [HttpGet("hand")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Engine.Cards.PinochleCard[]))]
         public IActionResult GetHand()
         {
-            (Room room, Seat seat) = GetRoomAndSeat();
+            (Room room, string playerId) = GetRoomAndPlayerId();
 
-            return Ok(room.Game.GetPlayerHand(seat)?.Cards);
+            return Ok(room.GetPlayerHand(playerId)?.Cards);
         }
 
         [HttpPost("bid")]
@@ -54,9 +43,9 @@ namespace JFadich.Pinochle.Server.Controllers
         [ProducesResponseType(typeof(void), StatusCodes.Status400BadRequest)]
         public IActionResult PlaceBid([FromBody] BidRequest request)
         {
-            (Room room, Seat seat) = GetRoomAndSeat();
-            
-            room.TakeAction(new PlaceBid(seat, request.Bid));
+            (Room room, string playerId) = GetRoomAndPlayerId();
+
+            room.PlaceBid(playerId, request.Bid);
 
             return Accepted();
         }
@@ -67,9 +56,9 @@ namespace JFadich.Pinochle.Server.Controllers
         [ProducesResponseType(typeof(void), StatusCodes.Status400BadRequest)]
         public IActionResult CallTrump([FromBody] CallTrumpRequest request)
         {
-            (Room room, Seat seat) = GetRoomAndSeat();
+            (Room room, string playerId) = GetRoomAndPlayerId();
 
-            room.TakeAction(new CallTrump(seat, request.Trump));
+            room.CallTrump(playerId, request.Trump);
 
             return Accepted();
         }
@@ -80,9 +69,9 @@ namespace JFadich.Pinochle.Server.Controllers
         [ProducesResponseType(typeof(void), StatusCodes.Status400BadRequest)]
         public IActionResult PassCards([FromBody] PassCardsRequest request)
         {
-            (Room room, Seat seat) = GetRoomAndSeat();
+            (Room room, string playerId) = GetRoomAndPlayerId();
 
-            room.TakeAction(new PassCards(seat, request.Cards));
+            room.PassCards(playerId, request.Cards);
 
             return Accepted();
         }
@@ -93,35 +82,30 @@ namespace JFadich.Pinochle.Server.Controllers
         [ProducesResponseType(typeof(void), StatusCodes.Status400BadRequest)]
         public IActionResult PlayTrick([FromBody] PlayTrickRequest request)
         {
-            (Room room, Seat seat) = GetRoomAndSeat();
+            (Room room, string playerId) = GetRoomAndPlayerId();
 
-            room.TakeAction(new PlayTrick(seat, request.Trick));
+            room.PlayTrick(playerId, request.Trick);
 
             return Accepted();
         }
 
-        private (Room, Seat) GetRoomAndSeat()
+        private (Room, string) GetRoomAndPlayerId()
         {
-            string roomId = User.FindFirst("room")?.Value;
+            string playerId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
-            if (string.IsNullOrEmpty(roomId))
+            if (string.IsNullOrEmpty(playerId))
             {
-                throw new Exception("Invalid room id.");
+                throw new Exception("Invalid player id.");
             }
 
-            var room = _rooms.GetRoom(roomId);
+            Room room = _rooms.GetPlayersRoom(playerId);
 
             if (room == null)
             {
                 throw new Exception("Room not found");
             }
 
-            if (!Int32.TryParse(User.FindFirst("position")?.Value, out int position))
-            {
-                throw new Exception("Invalid position");
-            }
-
-            return (room, Seat.ForPosition(position));
+            return (room, playerId);
         }
     }
 }

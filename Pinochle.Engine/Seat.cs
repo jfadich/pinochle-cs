@@ -37,7 +37,7 @@ namespace JFadich.Pinochle.Engine
 
         public override string ToString()
         {
-            return String.Format("Seat {0}", Position + 1);
+            return String.Format("Seat {0}", Position);
         }
     }
 }

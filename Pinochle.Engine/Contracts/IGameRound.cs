@@ -1,4 +1,5 @@
 ﻿using JFadich.Pinochle.Engine.Cards;
+using JFadich.Pinochle.Engine.Tricks;
 
 namespace JFadich.Pinochle.Engine.Contracts
 {
@@ -14,7 +15,7 @@ namespace JFadich.Pinochle.Engine.Contracts
 
         void PassCards(Seat from, Seat to, PinochleCard[] cards);
 
-        Tricks.Trick PlayTrick(Seat player, PinochleCard play);
+        Trick PlayTrick(Seat player, PinochleCard play);
 
         void OpenAuction(Seat player);
     }

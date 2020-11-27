@@ -45,7 +45,7 @@ namespace JFadich.Pinochle.Server.Controllers
         [Consumes(MediaTypeNames.Application.Json)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public ActionResult<Room> Matchmaking([FromBody] JoinRequest join)
+        public ActionResult<Room> Matchmaking([FromBody] MatchmakingRequest join)
         {
             var lobby = _gameManager.FindLobbyForPlayer(join.PlayerId);
 

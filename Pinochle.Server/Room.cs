@@ -4,8 +4,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using JFadich.Pinochle.Engine;
 using JFadich.Pinochle.Engine.Actions;
+using JFadich.Pinochle.Engine.Cards;
 using JFadich.Pinochle.Engine.Contracts;
 using JFadich.Pinochle.Engine.Events;
+using JFadich.Pinochle.Engine.Exceptions;
 using JFadich.Pinochle.Server.Models;
 
 namespace JFadich.Pinochle.Server
@@ -27,26 +29,17 @@ namespace JFadich.Pinochle.Server
 
         private IPinochleGame _game { get; }
 
-        public IPinochleGame Game
-        {
-            get
-            {
-                return _game; /* @todo convert to DTO */
-            }
-        }
+        public bool IsPrivate { get;}
 
-        public bool IsPrivate { get; private set; }
+        public Room(string id) : this(id, false) {  }
 
-        public Room(string id)
+        public Room(string id, bool isPrivate)
         {
             _game = GameFactory.Make();
             Id = id;
+            IsPrivate = isPrivate;
             Players = new Player[_game.PlayerCount];
             Status = Statuses.Matchmaking;
-        }
-        public void MakePrivate()
-        {
-            IsPrivate = true;
         }
 
         public bool AddPlayer(Player player)
@@ -71,17 +64,17 @@ namespace JFadich.Pinochle.Server
             return !IsFull();
         }
 
-        public bool IsPlaying(string playerId)
+        private Player GetPlayer(string playerId)
         {
             foreach (var player in Players)
             {
                 if (player != null && player.Id == playerId)
                 {
-                    return true;
+                    return player;
                 }
             }
 
-            return false;
+            throw new InvalidActionException(string.Format("Player '{0}' is not in Room '{1}", playerId, this.Id));
         }
 
         public int GetOpenPosition()
@@ -107,18 +100,56 @@ namespace JFadich.Pinochle.Server
             return new Lobby(Id, Players, IsPrivate);
         }
 
-        public bool StartGame(int startingPosition)
+        public bool StartGame(string playerId = null)
         {
-            Status = Statuses.Playing;
+            if (string.IsNullOrEmpty(playerId))
+            {
+                _game.StartGame(_game.ActivePlayer.Position);
+            }
+            else
+            {
+                Player player = GetPlayer(playerId);
+                _game.StartGame(player.Seat.Position);
+            }
 
-            _game.StartGame(startingPosition);
+            Status = Statuses.Playing;
 
             return true;
         }
 
-        public void TakeAction(PlayerAction action)
+        public IHand GetPlayerHand(string playerId)
         {
-            _game.TakeAction(action);
+            Player player = GetPlayer(playerId);
+
+            return _game.GetPlayerHand(player.Seat);
+        }
+
+        public void PlaceBid(string playerId, int bid)
+        {
+            Player player = GetPlayer(playerId);
+
+            _game.TakeAction(new PlaceBid(player.Seat, bid));
+        }
+
+        public void CallTrump(string playerId, Card.Suits trump)
+        {
+            Player player = GetPlayer(playerId);
+
+            _game.TakeAction(new CallTrump(player.Seat, trump));
+        }
+
+        public void PassCards(string playerId, PinochleCard[] cards)
+        {
+            Player player = GetPlayer(playerId);
+
+            _game.TakeAction(new PassCards(player.Seat, cards));
+        }
+
+        public void PlayTrick(string playerId, PinochleCard trick)
+        {
+            Player player = GetPlayer(playerId);
+
+            _game.TakeAction(new PlayTrick(player.Seat, trick));
         }
 
         public void AddGameListener(Action<GameEvent> listener)
