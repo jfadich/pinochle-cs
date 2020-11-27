@@ -24,11 +24,11 @@ namespace PinochleServer.Models
             NextPlayer = gameEvent.NextPlayer;
         }
 
-        public static TurnTaken FromEvent(ActionTaken gameEvent, Seat seat)
+        public static TurnTaken FromEvent(ActionTaken gameEvent)
         {
             if(gameEvent.Action is Deal)
             {
-                return new PlayerDealt(gameEvent, seat);
+                return new PlayerDealt(gameEvent);
             }
             if(gameEvent.Action is PlaceBid bidPlaced)
             {

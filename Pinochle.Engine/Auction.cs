@@ -8,7 +8,7 @@ namespace JFadich.Pinochle.Engine
     {
         public int[] Bids;
 
-        public const int BidPass = 0;
+        public const int BidPass = -1;
 
         public static int StartingBid { get; } = 25;
 

@@ -11,13 +11,14 @@ using JFadich.Pinochle.Engine.Events;
 using PinochleServer.Models;
 using JFadich.Pinochle.Engine.Tricks;
 using JFadich.Pinochle.Engine.Models;
+using JFadich.Pinochle.Engine.Actions;
 
 namespace JFadich.Pinochle.Server
 {
     public class GameManager
     {
         private readonly ConcurrentDictionary<string, GameRoom> Rooms = new ConcurrentDictionary<string, GameRoom>();
-        private readonly List<string> Lobbies = new List<string>(); // list of room Ids that are open for new players
+        private readonly HashSet<string> Lobbies = new HashSet<string>(); // list of room Ids that are open for new players
         private readonly ConcurrentDictionary<string, string> Players = new ConcurrentDictionary<string, string>(); // [playerId => gameId]
 
         private IHubContext<GameHub, IGameClient> gameHub;
@@ -56,7 +57,7 @@ namespace JFadich.Pinochle.Server
             return Lobbies.Contains(id);
         }
 
-        public GameRoom NewRoom(bool isPrivate)
+        public GameRoom NewRoom(bool isPrivate = false)
         {
             if( Rooms.Count >= MaxRooms || Lobbies.Count >= MaxLobbies)
             {
@@ -159,17 +160,15 @@ namespace JFadich.Pinochle.Server
 
         private void BroadcastActionTaken(GameRoom room, ActionTaken actionEvent)
         {
-            if(actionEvent.Action is Engine.Actions.Deal)
+            if(actionEvent.Action is Deal)
             {
                 for (int i = 0; i < room.Players.Length; i++) 
                 {
-                    // todo Groups(...).RecieveCards()
-                    gameHub.Clients.Groups(room.Id + ":position:" + i).TurnTaken(room.Id, TurnTaken.FromEvent(actionEvent, Seat.ForPosition(i)));
+                    gameHub.Clients.Groups(room.Id + ":position:" + i).ReceiveCards(room.Id, (actionEvent.Action as Deal).Hands[i].Cards);
                 }
-            } else
-            {
-                gameHub.Clients.Groups(room.Id, Audiences.AllGames).TurnTaken(room.Id, TurnTaken.FromEvent(actionEvent, null));
             }
+
+            gameHub.Clients.Groups(room.Id, Audiences.AllGames).TurnTaken(room.Id, TurnTaken.FromEvent(actionEvent));
         }
     }
 }

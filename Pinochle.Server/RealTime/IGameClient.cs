@@ -19,7 +19,8 @@ namespace JFadich.Pinochle.Server.RealTime
 
         Task TurnTaken(string roomId, TurnTaken turn);
 
-        Task RecieveCards(string roomId, PinochleCard[] cards);
+        Task ReceiveCards(string roomId, PinochleCard[] cards);
+
         Task RemoveCards(string roomId, PinochleCard[] cards);
     }
 }

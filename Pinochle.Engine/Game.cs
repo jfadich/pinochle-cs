@@ -89,8 +89,8 @@ namespace JFadich.Pinochle.Engine
             {
                 throw new Exceptions.OutOfTurnException();
             }
-            
-            if(action.Apply(CurrentRound)) {
+
+            if (action.Apply(CurrentRound)) {
                 AdvancePlayer();
 
                 GameEvents?.Invoke(new Events.ActionTaken(action, ActivePlayer));

@@ -11,13 +11,6 @@ namespace PinochleServer.Models.Turns
 {
     public class PlayerDealt : TurnTaken
     {
-        public IHand MyHand { get; }
-        public PlayerDealt(ActionTaken actionTaken, Seat seat) : base(actionTaken)
-        {
-            if(seat != null)
-            {
-                MyHand = (actionTaken.Action as Deal).Hands[seat.Position];
-            }
-        }
+        public PlayerDealt(ActionTaken actionTaken) : base(actionTaken) { }
     }
 }
