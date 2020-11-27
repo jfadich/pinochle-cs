@@ -18,9 +18,6 @@ namespace JFadich.Pinochle.Engine
 
         public GameScore Score { get; }
 
-        public ICollection<Seat> AllPlayers { get => _players.ToList(); }
-
-
         public Phases CurrentPhase { get => CurrentRound == null ? Phases.Dealing : CurrentRound.Phase; }
 
         public Seat ActivePlayer {
@@ -61,9 +58,7 @@ namespace JFadich.Pinochle.Engine
 
         public void StartGame(int startingPosition = 0)
         {
-            //StartingPosition = startingPosition;
             activePosition = StartingPosition = startingPosition;
-
 
             for(int i = 0;  i < _players.Length; i++)
             {
@@ -204,7 +199,7 @@ namespace JFadich.Pinochle.Engine
 
         public static bool IsValidPosition(int position)
         {
-            return position > 0 && position < NumberOfPlayers;
+            return position >= 0 && position < NumberOfPlayers;
         }
 
         public static int ValidatePosition(int position)

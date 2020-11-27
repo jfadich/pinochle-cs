@@ -136,8 +136,9 @@ namespace JFadich.Pinochle.PlayConsole
 
         public void ShowMeld()
         {
-            foreach(Seat player in Game.AllPlayers)
+            for (int i = 0; i < Game.PlayerCount; i++)
             {
+                Seat player = Seat.ForPosition(i);
                 ICollection<Meld>  meld = Game.GetPlayerMeld(player);
 
                 Console.WriteLine("{0} Meld. {1} Points", player, meld.Sum(score => score.GetValue()));

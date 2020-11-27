@@ -16,8 +16,6 @@ namespace JFadich.Pinochle.Engine.Contracts
 
         bool IsCompleted { get; }
 
-        ICollection<Seat> AllPlayers { get; }
-
         Phases CurrentPhase { get; }
 
         bool IsPhase(Phases phase);

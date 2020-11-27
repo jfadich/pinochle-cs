@@ -8,6 +8,8 @@ namespace JFadich.Pinochle.Engine
     {
         public int[] Bids;
 
+        public const int BidPass = 0;
+
         public static int StartingBid { get; } = 25;
 
         public int CurrentBid { get; private set; }
@@ -27,7 +29,7 @@ namespace JFadich.Pinochle.Engine
             PlaceBid(player, StartingBid);
         }
 
-        public bool PlayerHasPassed(Seat player) => Bids[player.Position] == -1;
+        public bool PlayerHasPassed(Seat player) => Bids[player.Position] == BidPass;
 
         public void PlaceBid(Seat player, int bid)
         {
@@ -38,7 +40,7 @@ namespace JFadich.Pinochle.Engine
                 throw new Exceptions.PinochleRuleViolationException("Player has already passed.");
             }
 
-            if (bid < minBid && bid != -1)
+            if (bid < minBid && bid != BidPass)
             {
                 throw new Exceptions.PinochleRuleViolationException("Must bid  at least " + minBid);
             }
@@ -46,7 +48,7 @@ namespace JFadich.Pinochle.Engine
             Bids[player.Position] = bid;
 
             // If this player is passing, check for the last person standing
-            if(bid == -1)
+            if(bid == BidPass)
             {
                 CheckForClose();
             } else
@@ -61,7 +63,7 @@ namespace JFadich.Pinochle.Engine
 
             foreach (int playerBid in Bids)
             {
-                if (playerBid == -1)
+                if (playerBid == BidPass)
                 {
                     passedPlayers++;
                 }

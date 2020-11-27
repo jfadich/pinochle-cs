@@ -1,4 +1,5 @@
-﻿using System;
+﻿using JFadich.Pinochle.Engine.Exceptions;
+using System;
 
 namespace JFadich.Pinochle.Engine
 {
@@ -12,6 +13,11 @@ namespace JFadich.Pinochle.Engine
 
         public static Seat ForPosition(int position)
         {
+            if(!Game.IsValidPosition(position))
+            {
+                throw new PinochleRuleViolationException("Invalid seat position");
+            }
+
             return new Seat(position);
         }
 

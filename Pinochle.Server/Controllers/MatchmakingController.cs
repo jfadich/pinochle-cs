@@ -14,6 +14,9 @@ using System.Net.Mime;
 
 namespace JFadich.Pinochle.Server.Controllers
 {
+    /// <summary>
+    /// Create or find rooms for players.
+    /// </summary>
     [Authorize]
     [ApiController]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -32,9 +35,9 @@ namespace JFadich.Pinochle.Server.Controllers
 
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public ActionResult<List<Room>> Index([FromServices] GameManager games)
+        public ActionResult<List<Room>> Index()
         {
-            return this.Ok(games.PublicLobbies);
+            return this.Ok(_gameManager.PublicLobbies);
         }
 
         [Authorize(Roles = "Administrator,Coordinator")]
