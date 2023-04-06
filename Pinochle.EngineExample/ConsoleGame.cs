@@ -9,6 +9,7 @@ using JFadich.Pinochle.Engine.Contracts;
 using JFadich.Pinochle.Engine;
 using JFadich.Pinochle.Engine.Exceptions;
 using JFadich.Pinochle.Engine.Events.CompletedPhases;
+using Spectre.Console;
 
 namespace JFadich.Pinochle.PlayConsole
 {
@@ -24,6 +25,10 @@ namespace JFadich.Pinochle.PlayConsole
         public void Play()
         {
             Console.OutputEncoding = Encoding.UTF8;
+            Console.BackgroundColor = ConsoleColor.Black;
+            Console.ForegroundColor = ConsoleColor.White;
+            AnsiConsole.Background = ConsoleColor.Black;
+
             Game = GameFactory.Make(); ;
             Turns = new Dictionary<Phases, List<ActionTaken>>();
             CompletedPhases = new List<PhaseCompleted>();
@@ -92,7 +97,7 @@ namespace JFadich.Pinochle.PlayConsole
             do
             {
                 DrawHand();
-                Console.WriteLine(Game.ActivePlayer + " pease select trump [c,h,s,d]");
+                Console.WriteLine(Game.ActivePlayer + " please select trump [c,h,s,d]");
 
                 string providedTrump = Console.ReadLine();
                 providedTrump.Trim();
@@ -265,22 +270,45 @@ namespace JFadich.Pinochle.PlayConsole
 
         protected void DrawHand()
         {
-            Console.ResetColor();
-            foreach (PinochleCard card in Game.GetPlayerHand(Game.ActivePlayer).Cards)
+            AnsiConsole.Background = Color.Black;
+            AnsiConsole.Foreground = Color.White;
+            AnsiConsole.WriteLine();
+            var hand = Game.GetPlayerHand(Game.ActivePlayer);
+
+            // Create a table
+            var table = new Table();
+
+            table.HideHeaders();
+            for(int i = 0; i < hand.Cards.Length; i++)
             {
+                table.AddColumn(i.ToString());
+            }
+
+            List<Text> handRow = new();
+
+            foreach (PinochleCard card in hand.Cards)
+            {
+                Text text;
+
                 if (card.getColor() == PinochleCard.Color.Red)
                 {
-                    Console.ForegroundColor = ConsoleColor.Red;
+                    text = new Text(card.GetShortName(), new Style(Color.Red, Color.Black));
                 }
                 else
                 {
-                    Console.ForegroundColor = ConsoleColor.White;
+                    text = new Text(card.GetShortName(), new Style(Color.White, Color.Black));
                 }
 
-                Console.Write(card + " " );
+                text.Centered();
+                handRow.Add(text);
             }
-            Console.ResetColor();
-            Console.WriteLine();
+
+            table.AddRow(handRow);
+            table.Expand();
+
+            AnsiConsole.Write(table);
+
+            Console.WriteLine("");
 
             
         }
@@ -288,42 +316,42 @@ namespace JFadich.Pinochle.PlayConsole
         protected void Draw()
         {
             Console.Clear();
-            Console.ResetColor();
+            //     Console.ResetColor();
 
-       //     GameScore score = Game.GetScore();
-       //     var roundScore = Game.GetRoundScore();
+            //     GameScore score = Game.GetScore();
+            //     var roundScore = Game.GetRoundScore();
             Console.Write("Phase " + Game.CurrentPhase.ToString());
             Console.Write(" | Current Player: " + Game.ActivePlayer);
-        //    Console.Write(string.Format(" | Team A: {0}", score.TeamA));
-            if(Game.CurrentPhase == Phases.Playing)
+            //    Console.Write(string.Format(" | Team A: {0}", score.TeamA));
+            if (Game.CurrentPhase == Phases.Playing)
             {
-        //        Console.Write(string.Format(" (+{0})", roundScore.TeamA));
+                //        Console.Write(string.Format(" (+{0})", roundScore.TeamA));
             }
-      //      Console.Write(string.Format(" | Team B: {0}", score.TeamB));
+            //      Console.Write(string.Format(" | Team B: {0}", score.TeamB));
 
             if (Game.CurrentPhase == Phases.Playing)
             {
-     //           Console.Write(string.Format(" (+{0})", roundScore.TeamB));
+                //           Console.Write(string.Format(" (+{0})", roundScore.TeamB));
             }
             Console.WriteLine();
             Console.WriteLine("----------------------------------------------------------------------------------");
 
-            foreach(PhaseCompleted phase in CompletedPhases)
+            foreach (PhaseCompleted phase in CompletedPhases)
             {
                 Console.WriteLine(phase);
             }
 
             Console.WriteLine("----------------------------------------------------------------------------------");
 
-            if(Game.IsPhase(Phases.Playing))
+            if (Game.IsPhase(Phases.Playing))
             {
-                if(CurrentTrick != null)
+                if (CurrentTrick != null)
                 {
                     foreach (var play in CurrentTrick.Plays)
                     {
                         string s = play.Position + " : " + play.Card;
 
-                        if(CurrentTrick.IsCompleted && CurrentTrick.WinningPlay == play)
+                        if (CurrentTrick.IsCompleted && CurrentTrick.WinningPlay == play)
                         {
                             s += " Winner";
                         }
@@ -331,7 +359,7 @@ namespace JFadich.Pinochle.PlayConsole
                         Console.WriteLine(s);
                     }
                 }
-            } 
+            }
             else
             {
                 foreach (ActionTaken turn in Turns[Game.CurrentPhase])

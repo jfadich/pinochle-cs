@@ -52,6 +52,11 @@ namespace JFadich.Pinochle.Engine
             return IsDoubled ? DoubleValue : Value;
         }
 
+        public override bool Equals(object obj)
+        {
+            return ToString() == ((Meld)obj).ToString();
+        }
+
         public override string ToString()
         {
             PinochleCard[] cards = IsDoubled ? Double() : Cards.ToArray();

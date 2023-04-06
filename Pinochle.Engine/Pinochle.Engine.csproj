@@ -5,5 +5,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <Authors>John Fadich</Authors>
   </PropertyGroup>
-
+  <ItemGroup>
+    <InternalsVisibleTo Include="Pinochle.EngineExample" />
+  </ItemGroup>
 </Project>

@@ -8,4 +8,11 @@
   <ItemGroup>
     <ProjectReference Include="..\Pinochle.Engine\Pinochle.Engine.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Remove="Spectre.Console" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.13.4" />
+    <PackageReference Include="Spectre.Console" Version="0.46.0" />
+  </ItemGroup>
 </Project>

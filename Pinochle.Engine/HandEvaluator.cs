@@ -7,7 +7,7 @@ using JFadich.Pinochle.Engine.Tricks;
 
 namespace JFadich.Pinochle.Engine
 {
-    class HandEvaluator
+    internal class HandEvaluator
     {
         private Hand Hand;
 

@@ -4,6 +4,7 @@ using JFadich.Pinochle.Engine.Tricks;
 using JFadich.Pinochle.Engine.Cards;
 using System.Linq;
 using JFadich.Pinochle.Engine.Contracts;
+using Pinochle.Engine;
 
 namespace JFadich.Pinochle.Engine
 {
@@ -88,9 +89,9 @@ namespace JFadich.Pinochle.Engine
 
         public void CalculateMeld(Seat player)
         {
-            HandEvaluator eval = new HandEvaluator(PlayerHand(player), Trump);
+            RegexHandEvaluator eval = new RegexHandEvaluator(); // todo move to class property
 
-            MeldScore[player.Position] = eval.GetMeld();
+            MeldScore[player.Position] = eval.GetMeld(PlayerHand(player), Trump);
         }
 
         public void OpenAuction(Seat player)
