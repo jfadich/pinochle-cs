@@ -13,11 +13,11 @@ namespace JFadich.Pinochle.Engine
         public static int StartingBid { get; } = 25;
 
         public int CurrentBid { get; private set; }
-        public int WinningBid { get; private set; }
+        public int WinningBid { get; private set; } = 0;
 
         public int WinningPosition { get; private set; }
 
-        public bool IsOpen { get; private set; } = true;
+        public bool IsOpen => WinningBid == 0;
 
         public Auction()
         {
@@ -71,7 +71,6 @@ namespace JFadich.Pinochle.Engine
 
             if (passedPlayers == (Game.NumberOfPlayers - 1))
             {
-                IsOpen = false;
                 WinningBid = CurrentBid;
                 WinningPosition = Array.IndexOf(Bids, CurrentBid);
             }

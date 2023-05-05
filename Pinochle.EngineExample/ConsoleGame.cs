@@ -22,14 +22,20 @@ namespace JFadich.Pinochle.PlayConsole
 
         protected IPinochleGame Game;
 
+        private IAnsiConsole _console { get; }
+
+        public ConsoleGame(IAnsiConsole console)
+        {
+            _console = console;
+
+         //   Console.BackgroundColor = ConsoleColor.White;
+         //   Console.ForegroundColor = ConsoleColor.Black;
+         //   Console.Clear();
+        }
+
         public void Play()
         {
-            Console.OutputEncoding = Encoding.UTF8;
-            Console.BackgroundColor = ConsoleColor.Black;
-            Console.ForegroundColor = ConsoleColor.White;
-            AnsiConsole.Background = ConsoleColor.Black;
-
-            Game = GameFactory.Make(); ;
+            Game = GameFactory.Make();
             Turns = new Dictionary<Phases, List<ActionTaken>>();
             CompletedPhases = new List<PhaseCompleted>();
             
@@ -61,32 +67,26 @@ namespace JFadich.Pinochle.PlayConsole
             while (Game.IsPhase(Phases.Bidding))
             {
                 DrawHand();
-                Console.Write(String.Format("What does {0} bid? ", Game.ActivePlayer));
-                string bid = Console.ReadLine();
+
+                int bid = _console.Ask<int>(String.Format("What does {0} bid? 0 to pass", Game.ActivePlayer));
 
                 try
                 {
-                    if (bid == "pass")
+                    if (bid == 0)
                     {
-                        Game.TakeAction(new PlaceBid(Game.ActivePlayer, -1));
+                        Game.TakeAction(new PlaceBid(Game.ActivePlayer, -1)); // todo replace -1 with constant from Auction
                         Draw();
                         continue;
                     }
 
-                    Game.TakeAction(new PlaceBid(Game.ActivePlayer, int.Parse(bid)));
+                    Game.TakeAction(new PlaceBid(Game.ActivePlayer, bid));
 
                     Draw();
-
                 }
                 catch (PinochleRuleViolationException exception)
                 {
-                    Console.WriteLine(exception.Message);
+                    _console.MarkupLineInterpolated($"[red]{exception.Message}[/]");
                 }
-                catch (FormatException)
-                {
-                    Console.WriteLine("Please enter bid as a number");
-                }
-
             }
         }
 
@@ -270,8 +270,6 @@ namespace JFadich.Pinochle.PlayConsole
 
         protected void DrawHand()
         {
-            AnsiConsole.Background = Color.Black;
-            AnsiConsole.Foreground = Color.White;
             AnsiConsole.WriteLine();
             var hand = Game.GetPlayerHand(Game.ActivePlayer);
 
@@ -302,26 +300,24 @@ namespace JFadich.Pinochle.PlayConsole
                 text.Centered();
                 handRow.Add(text);
             }
-
+            
             table.AddRow(handRow);
             table.Expand();
 
-            AnsiConsole.Write(table);
-
-            Console.WriteLine("");
-
-            
+            _console.Write(table);
+            _console.WriteLine("");
         }
+
 
         protected void Draw()
         {
-            Console.Clear();
-       //     Console.ResetColor();
+            _console.Clear();
 
-       //     GameScore score = Game.GetScore();
-       //     var roundScore = Game.GetRoundScore();
-            Console.Write("Phase " + Game.CurrentPhase.ToString());
-            Console.Write(" | Current Player: " + Game.ActivePlayer);
+
+            //     GameScore score = Game.GetScore();
+            //     var roundScore = Game.GetRoundScore();
+            _console.Write("Phase " + Game.CurrentPhase.ToString());
+            _console.Write(" | Current Player: " + Game.ActivePlayer);
         //    Console.Write(string.Format(" | Team A: {0}", score.TeamA));
             if(Game.CurrentPhase == Phases.Playing)
             {
@@ -333,15 +329,15 @@ namespace JFadich.Pinochle.PlayConsole
             {
      //           Console.Write(string.Format(" (+{0})", roundScore.TeamB));
             }
-            Console.WriteLine();
-            Console.WriteLine("----------------------------------------------------------------------------------");
+            _console.WriteLine();
+            _console.WriteLine("----------------------------------------------------------------------------------");
 
             foreach(PhaseCompleted phase in CompletedPhases)
             {
-                Console.WriteLine(phase);
+                _console.WriteLine(phase.ToString());
             }
 
-            Console.WriteLine("----------------------------------------------------------------------------------");
+            _console.WriteLine("----------------------------------------------------------------------------------");
 
             if(Game.IsPhase(Phases.Playing))
             {
@@ -356,7 +352,7 @@ namespace JFadich.Pinochle.PlayConsole
                             s += " Winner";
                         }
 
-                        Console.WriteLine(s);
+                        _console.WriteLine(s);
                     }
                 }
             } 
@@ -364,12 +360,12 @@ namespace JFadich.Pinochle.PlayConsole
             {
                 foreach (ActionTaken turn in Turns[Game.CurrentPhase])
                 {
-                    Console.WriteLine(turn);
+                    _console.WriteLine(turn.ToString());
                 }
             }
 
 
-            Console.WriteLine("----------------------------------------------------------------------------------");
+            _console.WriteLine("----------------------------------------------------------------------------------");
         }
 
         public void OnGameEvent(GameEvent gameEvent)

@@ -95,7 +95,7 @@ namespace JFadich.Pinochle.Engine
 
         public void OpenAuction(Seat player)
         {
-
+            Auction.Open(player);
         }
 
         public void OpenArena()
