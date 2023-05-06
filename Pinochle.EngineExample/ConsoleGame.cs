@@ -76,7 +76,7 @@ namespace JFadich.Pinochle.PlayConsole
                 {
                     if (bid == 0)
                     {
-                        Game.TakeAction(new PlaceBid(Game.ActivePlayer, -1)); // todo replace -1 with constant from Auction
+                        Game.TakeAction(new PassBid(Game.ActivePlayer));
                         Draw();
                         continue;
                     }

@@ -20,11 +20,6 @@ namespace JFadich.Pinochle.Engine.Actions
 
         public override string ToString()
         {
-            if(Bid == Auction.BidPass)
-            {
-                return String.Format("{0} passed", Seat);
-            }
-
             return String.Format("{0} bid {1}", Seat, Bid);
         }
     }
