@@ -5,6 +5,7 @@ using JFadich.Pinochle.Engine.Events.CompletedPhases;
 using JFadich.Pinochle.Engine.Actions;
 using System.Linq;
 using JFadich.Pinochle.Engine.Contracts;
+using Pinochle.Engine.Contracts;
 
 namespace JFadich.Pinochle.Engine
 {
@@ -196,7 +197,6 @@ namespace JFadich.Pinochle.Engine
             }
         }
 
-
         public static bool IsValidPosition(int position)
         {
             return position >= 0 && position < NumberOfPlayers;
@@ -275,5 +275,10 @@ namespace JFadich.Pinochle.Engine
         }
 
         protected int GetNexPosition(int sameTeam = 0) => ActivePlayer.NextPosition(sameTeam);
+
+        public IAuction GetAuction()
+        {
+            return CurrentRound.Auction;
+        }
     }
 }

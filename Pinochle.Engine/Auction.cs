@@ -1,10 +1,11 @@
-﻿using System;
+﻿using Pinochle.Engine.Contracts;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace JFadich.Pinochle.Engine
 {
-    class Auction
+    class Auction : IAuction
     {
         public int[] Bids;
 
@@ -12,7 +13,8 @@ namespace JFadich.Pinochle.Engine
 
         public static int StartingBid { get; } = 25;
 
-        public int CurrentBid { get; private set; }
+        public int CurrentBid { get; private set; } = 0;
+
         public int WinningBid { get; private set; } = 0;
 
         public int WinningPosition { get; private set; }
@@ -30,6 +32,8 @@ namespace JFadich.Pinochle.Engine
         }
 
         public bool PlayerHasPassed(Seat player) => Bids[player.Position] == BidPass;
+
+        public int GetPlayerBid(Seat player) => Bids[player.Position];
 
         public void PlaceBid(Seat player, int bid)
         {
