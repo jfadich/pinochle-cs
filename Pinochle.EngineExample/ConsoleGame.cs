@@ -29,10 +29,6 @@ namespace JFadich.Pinochle.PlayConsole
         public ConsoleGame(IAnsiConsole console)
         {
             _console = console;
-
-         //   Console.BackgroundColor = ConsoleColor.White;
-         //   Console.ForegroundColor = ConsoleColor.Black;
-         //   Console.Clear();
         }
 
         public void Play()
@@ -68,9 +64,7 @@ namespace JFadich.Pinochle.PlayConsole
         {
             while (Game.IsPhase(Phases.Bidding))
             {
-                DrawHand();
-
-                int bid = _console.Ask<int>(String.Format("What does {0} bid? 0 to pass", Game.ActivePlayer));
+                int bid = _console.Ask<int>(String.Format("What does {0} bid? 0 to pass: ", Game.ActivePlayer));
 
                 try
                 {
@@ -96,35 +90,31 @@ namespace JFadich.Pinochle.PlayConsole
         {
             PinochleCard.Suits? trump = null;
 
-            do
+            string providedTrump = _console.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("Please select trump.")
+                    .AddChoices(new[] {
+                            "Clubs", "Hearts", "Spades",
+                            "Diamonds"
+                    }));
+
+            providedTrump = providedTrump.ToLower();
+
+            switch (providedTrump)
             {
-                DrawHand();
-                Console.WriteLine(Game.ActivePlayer + " please select trump [c,h,s,d]");
-
-                string providedTrump = Console.ReadLine();
-                providedTrump.Trim();
-                providedTrump.ToLower();
-
-                switch (providedTrump)
-                {
-                    case "c":
-                    case "clubs":
-                        trump = PinochleCard.Suits.Clubs;
-                        break;
-                    case "h":
-                    case "hearts":
-                        trump = PinochleCard.Suits.Hearts;
-                        break;
-                    case "s":
-                    case "spades":
-                        trump = PinochleCard.Suits.Spades;
-                        break;
-                    case "d":
-                    case "diamonds":
-                        trump = PinochleCard.Suits.Diamonds;
-                        break;
-                }
-            } while (trump == null);
+                case "clubs":
+                    trump = PinochleCard.Suits.Clubs;
+                    break;
+                case "hearts":
+                    trump = PinochleCard.Suits.Hearts;
+                    break;
+                case "spades":
+                    trump = PinochleCard.Suits.Spades;
+                    break;
+                case "diamonds":
+                    trump = PinochleCard.Suits.Diamonds;
+                    break;
+            }
 
             Game.TakeAction(new CallTrump(Game.ActivePlayer, (PinochleCard.Suits)trump));
         }
@@ -168,7 +158,6 @@ namespace JFadich.Pinochle.PlayConsole
 
             while(Game.IsPhase(Phases.Playing))
             {
-
                 trick = AskForACard(" Play a trick.");
 
                 try
@@ -185,14 +174,28 @@ namespace JFadich.Pinochle.PlayConsole
 
         protected PinochleCard AskForACard(string message)
         {
-            return AskForCards(message, 1)[0];
+            IHand hand = Game.GetPlayerHand(Game.ActivePlayer);
+
+            PinochleCard selectedCard = AnsiConsole.Prompt(
+                new SelectionPrompt<PinochleCard>()
+                    .Title(message)
+                    .PageSize(5)
+                    .AddChoices(hand.Cards));
+
+            return selectedCard;
         }
 
         protected PinochleCard[] AskForCards(string message, int numberOfCards)
         {
             IHand hand = Game.GetPlayerHand(Game.ActivePlayer);
 
-            int j = 0;
+            List<PinochleCard> selectedCards = AnsiConsole.Prompt(
+                new MultiSelectionPrompt<PinochleCard>()
+                    .Title(message)
+                    .PageSize(5)
+                    .AddChoices(hand.Cards));//.ToList().Select(c => String.Format("{0} {1}", c.GetSuitShortName(), c.GetName())));/);
+
+            /* int j = 0;
             foreach (PinochleCard card in hand.Cards)
             {
                 bool canPlay = true;
@@ -265,48 +268,39 @@ namespace JFadich.Pinochle.PlayConsole
                     }
                 }
 
-            } while (!inputValid);
+            } while (!inputValid); */
 
-            return selectedCards;
+            return selectedCards.ToArray();
         }
 
-        protected Table DrawHand()
+        protected IRenderable DrawHand()
         {
-            AnsiConsole.WriteLine();
             var hand = Game.GetPlayerHand(Game.ActivePlayer);
 
-            // Create a table
-            var table = new Table();
-
-            table.HideHeaders();
-            for(int i = 0; i < hand.Cards.Length; i++)
-            {
-                table.AddColumn(i.ToString());
-            }
-
-            List<Text> handRow = new();
+            List<Panel> handRow = new();
 
             foreach (PinochleCard card in hand.Cards)
             {
-                Text text;
+                Style style;
 
                 if (card.getColor() == PinochleCard.Color.Red)
                 {
-                    text = new Text(card.GetShortName(), new Style(Color.Red, Color.White));
+                    style = new Style(Color.Red, Color.White);
                 }
                 else
                 {
-                    text = new Text(card.GetShortName(), new Style(Color.Black, Color.White));
+                    style = new Style(Color.Black, Color.White);
                 }
 
-                text.Centered();
-                handRow.Add(text);
+                Panel panel = new Panel(new Text(card.GetShortName(), style).Centered());
+                panel.BorderStyle = style;
+                panel.Padding = new Padding(0,0);
+
+                handRow.Add(panel);
             }
             
-            table.AddRow(handRow);
-            table.Expand();
 
-            return table;
+            return new Columns(handRow).Padding(0,0).Collapse();
         }
 
         private Layout DrawBidding()
@@ -335,7 +329,9 @@ namespace JFadich.Pinochle.PlayConsole
                     Align.Center(
                         new FigletText(auction.CurrentBid.ToString()).Color(Color.Green),
                         VerticalAlignment.Middle))
-                    .Expand());
+                    .Expand()
+                    .BorderColor(Color.Green)
+                    );
 
             return layout;
         }
@@ -357,16 +353,11 @@ namespace JFadich.Pinochle.PlayConsole
                     .BorderColor(borderColor);
         }
 
-        protected void Draw()
+        private IRenderable DrawFeed()
         {
-            _console.Clear();
-
-            //layout["Right"]["Main"].Update(DrawBidding());
-            //layout["Right"]["Hand"].Update(DrawHand());
-
             List<IRenderable> feed = new()
             {
-                new Rule("[white]Round[/]").LeftJustified()
+                new Rule("Round ").LeftJustified() // todo get round number
             };
 
             foreach (PhaseCompleted phase in CompletedPhases)
@@ -401,16 +392,27 @@ namespace JFadich.Pinochle.PlayConsole
                 }
             }
 
-            var layout = new Layout("Root")
-                .SplitColumns(
-                    new Layout("Feed", new Rows(feed)) { Ratio = 2 },
-                    new Layout("Right") { Ratio = 5 }
-                        .SplitRows(
-                            new Layout("Main", DrawBidding()) { Ratio = 8 },
-                            new Layout("Hand", DrawHand()) { Ratio = 1 }));
+            return new Rows(feed);
+        }
 
-            // Render the layout
-            AnsiConsole.Write(layout);
+        protected void Draw()
+        {
+            _console.Clear();
+
+            var layout = new Layout("Root") { Size = 26 }
+                .SplitRows(
+                    new Layout("Score", new Text("SCORE")) { Size = 1 },
+                    new Layout("Game") { Size = 25 }
+                        .SplitColumns(
+                            new Layout("Feed", DrawFeed()) { Ratio = 3 },
+                            new Layout("Right") { Ratio = 7 }
+                                .SplitRows(
+                                    new Layout("Main", DrawBidding()) { Size = 22 },
+                                    new Layout("Hand", DrawHand()) { Size = 3 })));
+
+
+
+            _console.Write(layout);
 
             //     GameScore score = Game.GetScore();
             //     var roundScore = Game.GetRoundScore();
