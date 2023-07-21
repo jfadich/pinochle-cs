@@ -167,7 +167,7 @@ namespace JFadich.Pinochle.PlayConsole
                 } catch(IllegalTrickException e)
                 {
                     Draw();
-                    Console.WriteLine(e.Message);
+                    _console.MarkupLineInterpolated($"[red]{e.Message}[/]");
                 }
             }
         }
@@ -176,7 +176,7 @@ namespace JFadich.Pinochle.PlayConsole
         {
             IHand hand = Game.GetPlayerHand(Game.ActivePlayer);
 
-            PinochleCard selectedCard = AnsiConsole.Prompt(
+            PinochleCard selectedCard = _console.Prompt(
                 new SelectionPrompt<PinochleCard>()
                     .Title(message)
                     .PageSize(5)
@@ -188,87 +188,16 @@ namespace JFadich.Pinochle.PlayConsole
         protected PinochleCard[] AskForCards(string message, int numberOfCards)
         {
             IHand hand = Game.GetPlayerHand(Game.ActivePlayer);
-
-            List<PinochleCard> selectedCards = AnsiConsole.Prompt(
-                new MultiSelectionPrompt<PinochleCard>()
-                    .Title(message)
-                    .PageSize(5)
-                    .AddChoices(hand.Cards));//.ToList().Select(c => String.Format("{0} {1}", c.GetSuitShortName(), c.GetName())));/);
-
-            /* int j = 0;
-            foreach (PinochleCard card in hand.Cards)
-            {
-                bool canPlay = true;
-                Console.ResetColor();
-
-                if (card.getColor() == PinochleCard.Color.Red)
-                {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                }
-                else
-                {
-                    Console.ForegroundColor = ConsoleColor.White;
-                }
-
-                if (Game.IsPhase(Phases.Playing))
-                {
-                    canPlay = Game.CanPlay(card);
-
-                    if(!canPlay)
-                    {
-                        Console.BackgroundColor = ConsoleColor.DarkGray;
-                        Console.WriteLine(String.Format("X: {0}", card.GetName()));
-                        j++;
-                        continue;
-                    }
-                }
-
-                Console.WriteLine(String.Format("{0}: {1} {2}", j, card.GetSuitShortName(), card.GetName()));
-                j++;
-                
-            }
-
-            Console.ResetColor();
-            Console.WriteLine(Game.ActivePlayer + message);
-            
-
-            bool inputValid = false;
-            PinochleCard[] selectedCards;
+            List<PinochleCard> selectedCards;
 
             do
             {
-                string cardsInput = Console.ReadLine();
-                string[] cards = cardsInput.Split(" ");
-                selectedCards = new PinochleCard[numberOfCards];
-
-                if (cards.Length < numberOfCards)
-                {
-                    continue;
-                }
-
-                for (int i = 0; i < numberOfCards; i++)
-                {
-                    try
-                    {
-                        int cardIndex = int.Parse(cards[i]);
-                        if (cardIndex > hand.Cards.Length - 1)
-                        {
-                            inputValid = false;
-                            break;
-                        }
-                        else
-                        {
-                            selectedCards[i] = hand.Cards[cardIndex];
-                            inputValid = true;
-                        }
-                    }
-                    catch (Exception)
-                    {
-                        inputValid = false;
-                    }
-                }
-
-            } while (!inputValid); */
+                selectedCards = _console.Prompt(
+                    new MultiSelectionPrompt<PinochleCard>()
+                        .Title(message)
+                        .PageSize(5)
+                        .AddChoices(hand.Cards));
+            } while (selectedCards.Count != numberOfCards);
 
             return selectedCards.ToArray();
         }
@@ -413,21 +342,6 @@ namespace JFadich.Pinochle.PlayConsole
 
 
             _console.Write(layout);
-
-            //     GameScore score = Game.GetScore();
-            //     var roundScore = Game.GetRoundScore();
-
-        //    Console.Write(string.Format(" | Team A: {0}", score.TeamA));
-            if(Game.CurrentPhase == Phases.Playing)
-            {
-        //        Console.Write(string.Format(" (+{0})", roundScore.TeamA));
-            }
-      //      Console.Write(string.Format(" | Team B: {0}", score.TeamB));
-
-            if (Game.CurrentPhase == Phases.Playing)
-            {
-     //           Console.Write(string.Format(" (+{0})", roundScore.TeamB));
-            }
         }
 
         public void OnGameEvent(GameEvent gameEvent)

@@ -17,7 +17,7 @@ namespace JFadich.Pinochle.PlayConsole
                 Out = new AnsiConsoleOutput(Console.Out),
             });
 
-            ConsoleGame pinochle = new ConsoleGame(console);
+            ConsoleGame pinochle = new(console);
 
             pinochle.Play();
             Console.ReadLine();
