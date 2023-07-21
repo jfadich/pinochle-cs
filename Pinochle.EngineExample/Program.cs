@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Spectre.Console;
+using System;
+using System.Text;
 
 namespace JFadich.Pinochle.PlayConsole
 {
@@ -6,7 +8,16 @@ namespace JFadich.Pinochle.PlayConsole
     {
         static void Main(string[] args)
         {
-            ConsoleGame pinochle = new ConsoleGame();
+            Console.OutputEncoding = Encoding.UTF8;
+
+            IAnsiConsole console = AnsiConsole.Create(new AnsiConsoleSettings
+            {
+                Ansi = AnsiSupport.Detect,
+                ColorSystem = ColorSystemSupport.Detect,
+                Out = new AnsiConsoleOutput(Console.Out),
+            });
+
+            ConsoleGame pinochle = new(console);
 
             pinochle.Play();
             Console.ReadLine();

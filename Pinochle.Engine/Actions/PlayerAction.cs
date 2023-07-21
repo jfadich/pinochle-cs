@@ -8,7 +8,7 @@ namespace JFadich.Pinochle.Engine.Actions
 
         public Seat Seat { get; }
 
-        public PlayerAction (Seat seat, Phases phase)
+        protected PlayerAction (Seat seat, Phases phase)
         {
             Phase = phase;
             Seat = seat;

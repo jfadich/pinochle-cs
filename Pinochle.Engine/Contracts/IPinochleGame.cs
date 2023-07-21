@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using JFadich.Pinochle.Engine.Actions;
 using JFadich.Pinochle.Engine.Cards;
+using Pinochle.Engine.Contracts;
 
 namespace JFadich.Pinochle.Engine.Contracts
 {
@@ -31,6 +32,8 @@ namespace JFadich.Pinochle.Engine.Contracts
         void TakeAction(PlayerAction action);
 
         ICollection<Meld> GetPlayerMeld(Seat player);
+
+        IAuction GetAuction();
 
         // PlayerAction SuggestAction();
     }

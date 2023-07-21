@@ -9,6 +9,9 @@ using JFadich.Pinochle.Engine.Contracts;
 using JFadich.Pinochle.Engine;
 using JFadich.Pinochle.Engine.Exceptions;
 using JFadich.Pinochle.Engine.Events.CompletedPhases;
+using Spectre.Console;
+using Pinochle.Engine.Contracts;
+using Spectre.Console.Rendering;
 
 namespace JFadich.Pinochle.PlayConsole
 {
@@ -21,10 +24,16 @@ namespace JFadich.Pinochle.PlayConsole
 
         protected IPinochleGame Game;
 
+        private IAnsiConsole _console { get; }
+
+        public ConsoleGame(IAnsiConsole console)
+        {
+            _console = console;
+        }
+
         public void Play()
         {
-            Console.OutputEncoding = Encoding.UTF8;
-            Game = GameFactory.Make(); ;
+            Game = GameFactory.Make();
             Turns = new Dictionary<Phases, List<ActionTaken>>();
             CompletedPhases = new List<PhaseCompleted>();
             
@@ -55,33 +64,25 @@ namespace JFadich.Pinochle.PlayConsole
         {
             while (Game.IsPhase(Phases.Bidding))
             {
-                DrawHand();
-                Console.Write(String.Format("What does {0} bid? ", Game.ActivePlayer));
-                string bid = Console.ReadLine();
+                int bid = _console.Ask<int>(String.Format("What does {0} bid? 0 to pass: ", Game.ActivePlayer));
 
                 try
                 {
-                    if (bid == "pass")
+                    if (bid == 0)
                     {
-                        Game.TakeAction(new PlaceBid(Game.ActivePlayer, -1));
+                        Game.TakeAction(new PassBid(Game.ActivePlayer));
                         Draw();
                         continue;
                     }
 
-                    Game.TakeAction(new PlaceBid(Game.ActivePlayer, int.Parse(bid)));
+                    Game.TakeAction(new PlaceBid(Game.ActivePlayer, bid));
 
                     Draw();
-
                 }
                 catch (PinochleRuleViolationException exception)
                 {
-                    Console.WriteLine(exception.Message);
+                    _console.MarkupLineInterpolated($"[red]{exception.Message}[/]");
                 }
-                catch (FormatException)
-                {
-                    Console.WriteLine("Please enter bid as a number");
-                }
-
             }
         }
 
@@ -89,35 +90,31 @@ namespace JFadich.Pinochle.PlayConsole
         {
             PinochleCard.Suits? trump = null;
 
-            do
+            string providedTrump = _console.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("Please select trump.")
+                    .AddChoices(new[] {
+                            "Clubs", "Hearts", "Spades",
+                            "Diamonds"
+                    }));
+
+            providedTrump = providedTrump.ToLower();
+
+            switch (providedTrump)
             {
-                DrawHand();
-                Console.WriteLine(Game.ActivePlayer + " pease select trump [c,h,s,d]");
-
-                string providedTrump = Console.ReadLine();
-                providedTrump.Trim();
-                providedTrump.ToLower();
-
-                switch (providedTrump)
-                {
-                    case "c":
-                    case "clubs":
-                        trump = PinochleCard.Suits.Clubs;
-                        break;
-                    case "h":
-                    case "hearts":
-                        trump = PinochleCard.Suits.Hearts;
-                        break;
-                    case "s":
-                    case "spades":
-                        trump = PinochleCard.Suits.Spades;
-                        break;
-                    case "d":
-                    case "diamonds":
-                        trump = PinochleCard.Suits.Diamonds;
-                        break;
-                }
-            } while (trump == null);
+                case "clubs":
+                    trump = PinochleCard.Suits.Clubs;
+                    break;
+                case "hearts":
+                    trump = PinochleCard.Suits.Hearts;
+                    break;
+                case "spades":
+                    trump = PinochleCard.Suits.Spades;
+                    break;
+                case "diamonds":
+                    trump = PinochleCard.Suits.Diamonds;
+                    break;
+            }
 
             Game.TakeAction(new CallTrump(Game.ActivePlayer, (PinochleCard.Suits)trump));
         }
@@ -161,7 +158,6 @@ namespace JFadich.Pinochle.PlayConsole
 
             while(Game.IsPhase(Phases.Playing))
             {
-
                 trick = AskForACard(" Play a trick.");
 
                 try
@@ -171,177 +167,181 @@ namespace JFadich.Pinochle.PlayConsole
                 } catch(IllegalTrickException e)
                 {
                     Draw();
-                    Console.WriteLine(e.Message);
+                    _console.MarkupLineInterpolated($"[red]{e.Message}[/]");
                 }
             }
         }
 
         protected PinochleCard AskForACard(string message)
         {
-            return AskForCards(message, 1)[0];
+            IHand hand = Game.GetPlayerHand(Game.ActivePlayer);
+
+            PinochleCard selectedCard = _console.Prompt(
+                new SelectionPrompt<PinochleCard>()
+                    .Title(message)
+                    .PageSize(5)
+                    .AddChoices(hand.Cards));
+
+            return selectedCard;
         }
 
         protected PinochleCard[] AskForCards(string message, int numberOfCards)
         {
             IHand hand = Game.GetPlayerHand(Game.ActivePlayer);
-
-            int j = 0;
-            foreach (PinochleCard card in hand.Cards)
-            {
-                bool canPlay = true;
-                Console.ResetColor();
-
-                if (card.getColor() == PinochleCard.Color.Red)
-                {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                }
-                else
-                {
-                    Console.ForegroundColor = ConsoleColor.White;
-                }
-
-                if (Game.IsPhase(Phases.Playing))
-                {
-                    canPlay = Game.CanPlay(card);
-
-                    if(!canPlay)
-                    {
-                        Console.BackgroundColor = ConsoleColor.DarkGray;
-                        Console.WriteLine(String.Format("X: {0}", card.GetName()));
-                        j++;
-                        continue;
-                    }
-                }
-
-                Console.WriteLine(String.Format("{0}: {1} {2}", j, card.GetSuitShortName(), card.GetName()));
-                j++;
-                
-            }
-
-            Console.ResetColor();
-            Console.WriteLine(Game.ActivePlayer + message);
-            
-
-            bool inputValid = false;
-            PinochleCard[] selectedCards;
+            List<PinochleCard> selectedCards;
 
             do
             {
-                string cardsInput = Console.ReadLine();
-                string[] cards = cardsInput.Split(" ");
-                selectedCards = new PinochleCard[numberOfCards];
+                selectedCards = _console.Prompt(
+                    new MultiSelectionPrompt<PinochleCard>()
+                        .Title(message)
+                        .PageSize(5)
+                        .AddChoices(hand.Cards));
+            } while (selectedCards.Count != numberOfCards);
 
-                if (cards.Length < numberOfCards)
-                {
-                    continue;
-                }
-
-                for (int i = 0; i < numberOfCards; i++)
-                {
-                    try
-                    {
-                        int cardIndex = int.Parse(cards[i]);
-                        if (cardIndex > hand.Cards.Length - 1)
-                        {
-                            inputValid = false;
-                            break;
-                        }
-                        else
-                        {
-                            selectedCards[i] = hand.Cards[cardIndex];
-                            inputValid = true;
-                        }
-                    }
-                    catch (Exception)
-                    {
-                        inputValid = false;
-                    }
-                }
-
-            } while (!inputValid);
-
-            return selectedCards;
+            return selectedCards.ToArray();
         }
 
-        protected void DrawHand()
+        protected IRenderable DrawHand()
         {
-            Console.ResetColor();
-            foreach (PinochleCard card in Game.GetPlayerHand(Game.ActivePlayer).Cards)
+            var hand = Game.GetPlayerHand(Game.ActivePlayer);
+
+            List<Panel> handRow = new();
+
+            foreach (PinochleCard card in hand.Cards)
             {
+                Style style;
+
                 if (card.getColor() == PinochleCard.Color.Red)
                 {
-                    Console.ForegroundColor = ConsoleColor.Red;
+                    style = new Style(Color.Red, Color.White);
                 }
                 else
                 {
-                    Console.ForegroundColor = ConsoleColor.White;
+                    style = new Style(Color.Black, Color.White);
                 }
 
-                Console.Write(card + " " );
-            }
-            Console.ResetColor();
-            Console.WriteLine();
+                Panel panel = new Panel(new Text(card.GetShortName(), style).Centered());
+                panel.BorderStyle = style;
+                panel.Padding = new Padding(0,0);
 
+                handRow.Add(panel);
+            }
             
+
+            return new Columns(handRow).Padding(0,0).Collapse();
         }
 
-        protected void Draw()
+        private Layout DrawBidding()
         {
-            Console.Clear();
-            Console.ResetColor();
+            int activePosition = Game.ActivePlayer.Position;
+            IAuction auction = Game.GetAuction();
 
-       //     GameScore score = Game.GetScore();
-       //     var roundScore = Game.GetRoundScore();
-            Console.Write("Phase " + Game.CurrentPhase.ToString());
-            Console.Write(" | Current Player: " + Game.ActivePlayer);
-        //    Console.Write(string.Format(" | Team A: {0}", score.TeamA));
-            if(Game.CurrentPhase == Phases.Playing)
+            var layout = new Layout("Bidding")
+                .SplitColumns(
+                    new Layout("Seat_1") { Ratio = 1 },
+                    new Layout("Center") { Ratio = 2 },
+                    new Layout("Seat_3") { Ratio = 1 });
+
+            layout["Center"].SplitRows(
+                            new Layout("Seat_2") { Ratio = 1 },
+                            new Layout("Middle") { Ratio = 2 },
+                            new Layout("Seat_0") { Ratio = 1 });
+
+            layout["Seat_1"].Update(MakeSeat(new Seat(1),auction, activePosition));
+            layout["Seat_3"].Update(MakeSeat(new Seat(3), auction, activePosition));
+            layout["Center"]["Seat_2"].Update(MakeSeat(new Seat(2), auction, activePosition));
+            layout["Center"]["Seat_0"].Update(MakeSeat(new Seat(0), auction, activePosition));
+
+            layout["Center"]["Middle"].Update(
+                new Panel(
+                    Align.Center(
+                        new FigletText(auction.CurrentBid.ToString()).Color(Color.Green),
+                        VerticalAlignment.Middle))
+                    .Expand()
+                    .BorderColor(Color.Green)
+                    );
+
+            return layout;
+        }
+
+        private Panel MakeSeat(Seat seat, IAuction auction, int activePosition)
+        {
+            bool playerHasPassed = auction.PlayerHasPassed(seat);
+            Color borderColor = playerHasPassed ? Color.Grey50 : (activePosition == seat.Position ? Color.Gold1 : Color.White);
+            string bid = playerHasPassed ? "Passed" : auction.GetPlayerBid(seat).ToString();
+
+            return new Panel(
+                    Align.Center(
+                        new Rows(
+                            new Text(seat.ToString()),
+                            new Text(bid)
+                        ),
+                        VerticalAlignment.Middle))
+                    .Expand()
+                    .BorderColor(borderColor);
+        }
+
+        private IRenderable DrawFeed()
+        {
+            List<IRenderable> feed = new()
             {
-        //        Console.Write(string.Format(" (+{0})", roundScore.TeamA));
+                new Rule("Round ").LeftJustified() // todo get round number
+            };
+
+            foreach (PhaseCompleted phase in CompletedPhases)
+            {
+                feed.Add(new Text(phase.ToString()));
             }
-      //      Console.Write(string.Format(" | Team B: {0}", score.TeamB));
 
-            if (Game.CurrentPhase == Phases.Playing)
+            feed.Add(new Rule(Game.CurrentPhase.ToString()).LeftJustified());
+
+            if (Game.IsPhase(Phases.Playing))
             {
-     //           Console.Write(string.Format(" (+{0})", roundScore.TeamB));
-            }
-            Console.WriteLine();
-            Console.WriteLine("----------------------------------------------------------------------------------");
-
-            foreach(PhaseCompleted phase in CompletedPhases)
-            {
-                Console.WriteLine(phase);
-            }
-
-            Console.WriteLine("----------------------------------------------------------------------------------");
-
-            if(Game.IsPhase(Phases.Playing))
-            {
-                if(CurrentTrick != null)
+                if (CurrentTrick != null)
                 {
                     foreach (var play in CurrentTrick.Plays)
                     {
                         string s = play.Position + " : " + play.Card;
 
-                        if(CurrentTrick.IsCompleted && CurrentTrick.WinningPlay == play)
+                        if (CurrentTrick.IsCompleted && CurrentTrick.WinningPlay == play)
                         {
                             s += " Winner";
                         }
 
-                        Console.WriteLine(s);
+                        feed.Add(new Text(s));
                     }
                 }
-            } 
+            }
             else
             {
                 foreach (ActionTaken turn in Turns[Game.CurrentPhase])
                 {
-                    Console.WriteLine(turn);
+                    feed.Add(new Text(turn.ToString()));
                 }
             }
 
+            return new Rows(feed);
+        }
 
-            Console.WriteLine("----------------------------------------------------------------------------------");
+        protected void Draw()
+        {
+            _console.Clear();
+
+            var layout = new Layout("Root") { Size = 26 }
+                .SplitRows(
+                    new Layout("Score", new Text("SCORE")) { Size = 1 },
+                    new Layout("Game") { Size = 25 }
+                        .SplitColumns(
+                            new Layout("Feed", DrawFeed()) { Ratio = 3 },
+                            new Layout("Right") { Ratio = 7 }
+                                .SplitRows(
+                                    new Layout("Main", DrawBidding()) { Size = 22 },
+                                    new Layout("Hand", DrawHand()) { Size = 3 })));
+
+
+
+            _console.Write(layout);
         }
 
         public void OnGameEvent(GameEvent gameEvent)
