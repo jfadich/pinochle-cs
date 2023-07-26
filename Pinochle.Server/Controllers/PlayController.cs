@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using System.Net.Mime;
 using JFadich.Pinochle.Engine.Actions;
 using JFadich.Pinochle.Server.Models;
+using Pinochle.Server.DataTransferObjects;
 
 namespace JFadich.Pinochle.Server.Controllers
 {
@@ -28,6 +29,23 @@ namespace JFadich.Pinochle.Server.Controllers
             _logger = logger;
         }
 
+        /// <summary>
+        /// Gets the state for the players current game.
+        /// </summary>
+        /// <returns>GameRoomDto</returns>
+        [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GameRoomDto))]
+        public ActionResult<GameRoom> GetRoom()
+        {
+            (GameRoom room, _) = GetRoomAndPlayerId();
+
+            return this.Ok(room);
+        }
+
+        /// <summary>
+        /// Gets the players current hand.
+        /// </summary>
+        /// <returns></returns>
         [HttpGet("hand")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(int[]))]
         public IActionResult GetHand()
@@ -37,6 +55,11 @@ namespace JFadich.Pinochle.Server.Controllers
             return Ok(room.GetPlayerHand(playerId)?.Cards);
         }
 
+        /// <summary>
+        /// Place a bid.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
         [HttpPost("bid")]
         [Consumes(MediaTypeNames.Application.Json)]
         [ProducesResponseType(StatusCodes.Status202Accepted)]
@@ -50,6 +73,11 @@ namespace JFadich.Pinochle.Server.Controllers
             return Accepted();
         }
 
+        /// <summary>
+        /// Call a suit for trump.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
         [HttpPost("call_trump")]
         [Consumes(MediaTypeNames.Application.Json)]
         [ProducesResponseType(StatusCodes.Status202Accepted)]
@@ -63,6 +91,11 @@ namespace JFadich.Pinochle.Server.Controllers
             return Accepted();
         }
 
+        /// <summary>
+        /// Pass Cards to the players partner.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
         [HttpPost("pass_cards")]
         [Consumes(MediaTypeNames.Application.Json)]
         [ProducesResponseType(StatusCodes.Status202Accepted)]
@@ -76,6 +109,11 @@ namespace JFadich.Pinochle.Server.Controllers
             return Accepted();
         }
 
+        /// <summary>
+        /// Play a card on the active trick.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
         [HttpPost("play_trick")]
         [Consumes(MediaTypeNames.Application.Json)]
         [ProducesResponseType(StatusCodes.Status202Accepted)]
@@ -98,7 +136,7 @@ namespace JFadich.Pinochle.Server.Controllers
                 throw new Exception("Invalid player id.");
             }
 
-            GameRoom room = _rooms.GetPlayersRoom(playerId);
+            GameRoom room = _rooms.Matchmaker.GetPlayersRoom(playerId);
 
             if (room == null)
             {
