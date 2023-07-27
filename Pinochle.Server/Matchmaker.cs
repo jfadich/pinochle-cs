@@ -131,7 +131,7 @@ namespace JFadich.Pinochle.Server
 
             if (room.IsFull())
             {
-                StartGame(room); // @todo 
+                StartGame(room); 
             }
 
             return true;
