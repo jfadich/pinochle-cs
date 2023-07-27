@@ -64,6 +64,9 @@ namespace JFadich.Pinochle.Server.Controllers
         }
 
         [Authorize(Roles = "Administrator,Coordinator")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GameRoomDto))]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [HttpGet("{id}")]
         public IActionResult Get(string id)
         {
