@@ -13,6 +13,8 @@ using JFadich.Pinochle.Engine.Tricks;
 using JFadich.Pinochle.Engine.Models;
 using JFadich.Pinochle.Engine.Actions;
 using Pinochle.Engine.Contracts;
+using Pinochle.Engine.Events;
+using Microsoft.Extensions.Logging;
 using Pinochle.Engine.Events.Matchmaking;
 
 namespace JFadich.Pinochle.Server
@@ -23,7 +25,8 @@ namespace JFadich.Pinochle.Server
         private readonly HashSet<string> Lobbies = new HashSet<string>(); // list of room Ids that are open for new players
         private readonly ConcurrentDictionary<string, string> Players = new ConcurrentDictionary<string, string>(); // [playerId => gameId]
 
-        private IHubContext<GameHub, IGameClient> gameHub;
+        private event Action<RoomEvent> RoomEvents;
+
         public List<GameRoom> PublicLobbies { get => AllLobbies.Where(item => !item.IsPrivate).ToList(); }
         public List<GameRoom> AllLobbies { get => Lobbies.Select(x => Rooms[x]).ToList(); }
         public List<GameRoom> PublicGames { get => Rooms.Where(item => !item.Value.IsPrivate && item.Value.Status == GameRoom.Statuses.Playing).Select(item => item.Value).ToList(); }
@@ -32,9 +35,8 @@ namespace JFadich.Pinochle.Server
         public const int MaxRooms = 100;
         public const int MaxLobbies = 10;
 
-        public Matchmaker(IHubContext<GameHub, IGameClient> gameClients)
+        public Matchmaker()
         {
-            gameHub = gameClients;
         }
 
         public GameRoom GetPlayersRoom(string playerId)
@@ -73,7 +75,8 @@ namespace JFadich.Pinochle.Server
             if (Rooms.TryAdd(id, room))
             {
                 Lobbies.Add(id);
-                gameHub.Clients.Group(Audiences.Matchmaking).AddedRoom(room);
+
+                RoomEvents?.Invoke(new RoomCreated(room));
 
                 return room;
             }
@@ -92,6 +95,8 @@ namespace JFadich.Pinochle.Server
             {
                 if (AddPlayerToRoom(lobby.Id, playerId))
                 {
+                    RoomEvents?.Invoke(new PlayerJoined(lobby, lobby.GetPlayer(playerId)));
+
                     return lobby;
                 }
             }
@@ -100,6 +105,8 @@ namespace JFadich.Pinochle.Server
 
             if (newRoom != null && AddPlayerToRoom(newRoom.Id, playerId))
             {
+                RoomEvents?.Invoke(new PlayerJoined(newRoom, newRoom.GetPlayer(playerId)));
+
                 return newRoom;
             }
 
@@ -121,7 +128,6 @@ namespace JFadich.Pinochle.Server
             }
 
             Players[playerId] = roomId;
-            gameHub.Clients.Groups(room.Id, Audiences.Matchmaking).PlayerJoined(room.GetPlayer(playerId));
 
             if (room.IsFull())
             {
@@ -135,47 +141,19 @@ namespace JFadich.Pinochle.Server
         {
             Lobbies.Remove(room.Id);
 
-            room.AddGameListener((GameEvent gameEvent) =>
+            if(room.StartGame())
             {
-                HandleGameEvent(room, gameEvent);
-            });
+                RoomEvents?.Invoke(new GameStarted(room));
 
-            gameHub.Clients.Groups(room.Id, Audiences.Matchmaking).ClosedLobby(room.Id, Lobby.ClosedReasons.GameStarting.ToString());
-
-            gameHub.Clients.Groups(room.Id, Audiences.AllGames).GameStarted(room.Id, room);
-
-            return room.StartGame();
-        }
-
-        private void HandleGameEvent(GameRoom room, GameEvent gameEvent)
-        {
-            if (gameEvent is ActionTaken action)
-            {
-                BroadcastActionTaken(room, action);
+                return true;
             }
 
-            if (gameEvent is PhaseCompleted phaseCompleted)
-            {
-
-            }
-        }
-
-        private void BroadcastActionTaken(GameRoom room, ActionTaken actionEvent)
-        {
-            if (actionEvent.Action is Deal)
-            {
-                for (int i = 0; i < room.Players.Length; i++)
-                {
-                    gameHub.Clients.Groups(room.Id + ":position:" + i).CardsReceived((actionEvent.Action as Deal).Hands[i].Cards);
-                }
-            }
-
-            gameHub.Clients.Groups(room.Id, Audiences.AllGames).TurnTaken(TurnTaken.FromEvent(actionEvent));
+            return false;
         }
 
         public void AddRoomListener(Action<RoomEvent> listener)
         {
-            throw new NotImplementedException();
+            RoomEvents += listener;
         }
     }
 }

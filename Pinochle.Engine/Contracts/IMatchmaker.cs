@@ -1,5 +1,6 @@
 ﻿using JFadich.Pinochle.Engine;
-using Pinochle.Engine.Events.Matchmaking;
+using JFadich.Pinochle.Engine.Events;
+using Pinochle.Engine.Events;
 using System;
 using System.Collections.Generic;
 

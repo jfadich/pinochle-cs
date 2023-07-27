@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Pinochle.Engine.Events.Matchmaking
+namespace JFadich.Pinochle.Engine.Events
 {
     public class RoomEvent
     {

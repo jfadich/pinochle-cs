@@ -15,6 +15,7 @@ using JFadich.Pinochle.Engine.Actions;
 using Pinochle.Engine.Contracts;
 using Pinochle.Engine.Events.Matchmaking;
 using System.Text.RegularExpressions;
+using Pinochle.Engine.Events;
 
 namespace JFadich.Pinochle.Server
 {

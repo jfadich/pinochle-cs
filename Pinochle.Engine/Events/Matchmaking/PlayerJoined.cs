@@ -1,4 +1,5 @@
 ﻿using JFadich.Pinochle.Engine;
+using JFadich.Pinochle.Engine.Events;
 using JFadich.Pinochle.Engine.Models;
 using System;
 using System.Collections.Generic;
