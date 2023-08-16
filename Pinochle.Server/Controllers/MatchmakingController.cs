@@ -11,6 +11,7 @@ using JFadich.Pinochle.Server.Requests;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using System.Net.Mime;
+using Pinochle.Server.DataTransferObjects;
 
 namespace JFadich.Pinochle.Server.Controllers
 {
@@ -20,7 +21,7 @@ namespace JFadich.Pinochle.Server.Controllers
     [Authorize]
     [ApiController]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [Route("games/[controller]")]
+    [Route("api/games/matchmaking")]
     public class MatchmakingController : ControllerBase
     {
         private readonly ILogger<GamesController> _logger;
@@ -34,20 +35,25 @@ namespace JFadich.Pinochle.Server.Controllers
         }
 
         [HttpGet]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        public ActionResult<List<GameRoom>> Index()
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<GameRoomDto>))]
+        public ActionResult<List<GameRoom>> List()
         {
-            return this.Ok(_gameManager.PublicLobbies);
+            if (User.IsInRole("Administrator") || User.IsInRole("Coordinator"))
+            {
+                return this.Ok(_gameManager.Matchmaker.AllLobbies);
+            }
+
+            return this.Ok(_gameManager.Matchmaker.PublicLobbies);
         }
 
         [Authorize(Roles = "Administrator,Coordinator")]
         [HttpPost]
         [Consumes(MediaTypeNames.Application.Json)]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GameRoomDto))]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public ActionResult<GameRoom> Matchmaking([FromBody] MatchmakingRequest join)
         {
-            var lobby = _gameManager.FindLobbyForPlayer(join.PlayerId);
+            var lobby = _gameManager.Matchmaker.FindLobbyForPlayer(join.PlayerId);
 
             if (lobby == null)
             {
@@ -57,24 +63,14 @@ namespace JFadich.Pinochle.Server.Controllers
             return Ok(lobby);
         }
 
-        [Authorize(Roles = "Administrator")]
-        [HttpGet("all")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [Authorize(Roles = "Administrator,Coordinator")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GameRoomDto))]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public ActionResult<List<GameRoom>> All()
-        {
-            return this.Ok(_gameManager.AllLobbies);
-        }
-
-        [Authorize(Roles = "Administrator,Player,Coordinator")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [HttpGet("{id}")]
         public IActionResult Get(string id)
         {
-            if(!User.IsInRole("Coordinator") && User.FindFirst("room")?.Value != id) {
-                return Forbid();
-            }
-
-            var lobby = _gameManager.AllLobbies.Where(room => room.Id == id);
+            var lobby = _gameManager.Matchmaker.AllLobbies.Where(room => room.Id == id);
 
             if (lobby == null)
             {
@@ -87,22 +83,24 @@ namespace JFadich.Pinochle.Server.Controllers
         [Authorize(Roles = "Coordinator")]
         [HttpPost("{id}/join")]
         [Consumes(MediaTypeNames.Application.Json)]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GameRoomDto))]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<GameRoom> AddToRoom(string id, [FromBody] JoinRequest join)
         {
-            if(!_gameManager.HasLobby(id))
+            if(!_gameManager.Matchmaker.HasLobby(id))
             {
                 return NotFound();
             }
             //            var user = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            if(!_gameManager.AddPlayerToRoom(id, join.PlayerId, join.SeatPosition)) {
+            // @todo if player has game, return bad request
+
+            if(!_gameManager.Matchmaker.AddPlayerToRoom(id, join.PlayerId, join.SeatPosition)) {
                 return BadRequest();
             }
 
-            return Ok(_gameManager.GetRoom(id));
+            return Ok(_gameManager.Matchmaker.GetRoom(id));
         }
     }
 }

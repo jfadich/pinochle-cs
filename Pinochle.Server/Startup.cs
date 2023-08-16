@@ -14,6 +14,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using NSwag;
 using NSwag.Generation.Processors.Security;
+using Pinochle.Engine.Contracts;
+using Pinochle.Engine;
 
 namespace JFadich.Pinochle.Server
 {
@@ -73,7 +75,7 @@ namespace JFadich.Pinochle.Server
                         var accessToken = context.Request.Query["access_token"];
 
                         var path = context.HttpContext.Request.Path;
-                        if (!string.IsNullOrEmpty(accessToken) && (path.StartsWithSegments("/realtime/games")))
+                        if (!string.IsNullOrEmpty(accessToken) && (path.StartsWithSegments("/realtime")))
                         {
                             // Read the token out of the query string
                             context.Token = accessToken;
@@ -89,6 +91,7 @@ namespace JFadich.Pinochle.Server
                 options.PayloadSerializerOptions.Converters.Add(new Converters.SeatConverter());
                 options.PayloadSerializerOptions.Converters.Add(new Converters.PinochleCardConverter());
             });
+            services.AddSingleton<IMatchmaker, Matchmaker>();
             services.AddSingleton<GameManager, GameManager>();
 
         }
@@ -124,7 +127,8 @@ namespace JFadich.Pinochle.Server
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
-                endpoints.MapHub<RealTime.GameHub>("/realtime/games");
+                endpoints.MapHub<RealTime.GameHub>("/realtime/game");
+                endpoints.MapHub<RealTime.MatchmakingHub>("/realtime/matchmaking");
             });
         }
     }

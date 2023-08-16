@@ -9,11 +9,12 @@ using JFadich.Pinochle.Server.Models;
 using Microsoft.AspNetCore.Authorization;
 using JFadich.Pinochle.Server.Requests;
 using Microsoft.AspNetCore.Http;
+using Pinochle.Server.DataTransferObjects;
 
 namespace JFadich.Pinochle.Server.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/games")]
     [ProducesResponseType(typeof(void), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(void), StatusCodes.Status403Forbidden)]
     public class GamesController : ControllerBase
@@ -34,15 +35,23 @@ namespace JFadich.Pinochle.Server.Controllers
         }
         */
         /// <summary>
-        /// Get all games.
+        /// Get a list of games.
         /// </summary>
+        /// <remarks>
+        /// If the user is an administrator or coordinator, then return all games. Otherwise return public games
+        /// </remarks>
         /// <returns></returns>
         [Authorize(Roles = "Administrator")]
-        [HttpGet("all")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        public ActionResult<List<GameRoom>> All()
+        [HttpGet()]
+        [ProducesResponseType(typeof(List<GameRoomDto>), StatusCodes.Status200OK)]
+        public ActionResult<List<GameRoom>> List()
         {
-            return this.Ok(games.AllGames);
+            if (User.IsInRole("Administrator") || User.IsInRole("Coordinator"))
+            {
+                return this.Ok(games.Matchmaker.AllGames);
+            }
+
+            return this.Ok(games.Matchmaker.PublicGames);
         }
 
         /// <summary>
@@ -53,7 +62,7 @@ namespace JFadich.Pinochle.Server.Controllers
         /// <returns></returns>
         [Authorize(Roles = "Administrator,Coordinator,Player,Observer")]
         [HttpGet("{id}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(GameRoomDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(void), StatusCodes.Status404NotFound)]
         public ActionResult<GameRoom> Get(string id)
         {
@@ -62,7 +71,7 @@ namespace JFadich.Pinochle.Server.Controllers
                 return Forbid();
             }
 
-            var game = games.GetRoom(id);
+            var game = games.Matchmaker.GetRoom(id);
 
             if(game == null)
             {
