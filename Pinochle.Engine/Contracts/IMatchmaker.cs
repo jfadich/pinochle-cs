@@ -6,6 +6,9 @@ using System.Collections.Generic;
 
 namespace Pinochle.Engine.Contracts
 {
+    /// <summary>
+    /// @todo move this to server
+    /// </summary>
     public interface IMatchmaker
     {
         List<GameRoom> AllGames { get; }
