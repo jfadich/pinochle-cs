@@ -13,7 +13,7 @@ namespace JFadich.Pinochle.Engine.Tricks
 
         public List<Play> Plays;
 
-        public Boolean IsCompleted = false;
+        public bool IsCompleted = false;
 
         public Play WinningPlay;
 

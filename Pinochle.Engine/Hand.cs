@@ -21,7 +21,7 @@ namespace JFadich.Pinochle.Engine
             _cards = new List<PinochleCard>(cards);
         }
 
-        public Boolean HasCards(PinochleCard[] needles)
+        public bool HasCards(PinochleCard[] needles)
         {
             List <PinochleCard> needlesList = new List<PinochleCard>(needles);
             return !needlesList.Where(needle => !_cards.Contains(needle)).Any();

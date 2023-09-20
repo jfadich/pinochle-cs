@@ -16,7 +16,7 @@ namespace JFadich.Pinochle.Engine.Tricks
 
         public Trick ActiveTrick;
 
-        public Boolean IsPlaying = true;
+        public bool IsPlaying = true;
 
         public Arena(Card.Suits trump, Seat leader)
         {

@@ -2,8 +2,19 @@
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <Authors>John Fadich</Authors>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <AssemblyName>JFadich.Pinochle.Engine</AssemblyName>
+    <RootNamespace>JFadich.Pinochle.Engine</RootNamespace>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>JFadich.Pinochle.Engine.Tests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
 
 </Project>
