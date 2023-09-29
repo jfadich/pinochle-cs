@@ -78,6 +78,7 @@ namespace JFadich.Pinochle.Engine.Cards
         {
             return String.Format("{0} of {1}", getRank(), getSuit());
         }
+
         public string GetShortName()
         {
             string rankSymbol;
