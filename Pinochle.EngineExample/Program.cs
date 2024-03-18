@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace JFadich.Pinochle.PlayConsole
@@ -16,6 +17,32 @@ namespace JFadich.Pinochle.PlayConsole
     {
         static void Main(string[] args)
         {
+            Console.OutputEncoding = Encoding.UTF8;
+            Console.WriteLine(new RegexMeldTable(Card.Suits.Diamonds).pattern);
+            var rh = new RegexHandEvaluator();
+            
+            var cards = new PinochleCard[]
+            {
+                new PinochleCard(PinochleCard.Ranks.Ace, PinochleCard.Suits.Diamonds),
+                new PinochleCard(PinochleCard.Ranks.Ace, PinochleCard.Suits.Diamonds),
+                new PinochleCard(PinochleCard.Ranks.Ten, PinochleCard.Suits.Diamonds),
+                new PinochleCard(PinochleCard.Ranks.King, PinochleCard.Suits.Diamonds),
+                //new PinochleCard(PinochleCard.Ranks.King, PinochleCard.Suits.Diamonds),
+                new PinochleCard(PinochleCard.Ranks.Queen, PinochleCard.Suits.Diamonds),
+                new PinochleCard(PinochleCard.Ranks.Jack, PinochleCard.Suits.Diamonds),
+                new PinochleCard(PinochleCard.Ranks.Jack, PinochleCard.Suits.Spades),
+                new PinochleCard(PinochleCard.Ranks.Nine, PinochleCard.Suits.Spades),
+                new PinochleCard(PinochleCard.Ranks.Nine, PinochleCard.Suits.Spades),
+                new PinochleCard(PinochleCard.Ranks.Nine, PinochleCard.Suits.Spades),
+                new PinochleCard(PinochleCard.Ranks.Nine, PinochleCard.Suits.Spades),
+                new PinochleCard(PinochleCard.Ranks.Nine, PinochleCard.Suits.Spades),
+                new PinochleCard(PinochleCard.Ranks.Nine, PinochleCard.Suits.Spades)
+            };
+            Console.WriteLine(string.Join(",",cards.Select(c => c.GetShortName())));
+            Console.WriteLine(string.Join(".",cards.Select(c => c.Value)));
+            rh.GetMeld(new Hand(cards), PinochleCard.Suits.Diamonds);
+            //Test();
+            return;
             Regex.CacheSize += 100;
             //ConsoleGame pinochle = new ConsoleGame();
 

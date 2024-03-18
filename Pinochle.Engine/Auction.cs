@@ -10,7 +10,7 @@ namespace JFadich.Pinochle.Engine
 
         public const int BidPass = -1;
 
-        public static int StartingBid { get; } = 25;
+        public const int StartingBid = 25;
 
         public int CurrentBid { get; private set; }
         public int WinningBid { get; private set; }

@@ -10,6 +10,28 @@ namespace JFadich.Pinochle.Engine
 {
     class Game : Contracts.IPinochleGame
     {
+        /*
+         * Game object:
+         * current_round[int]
+         * active_seat[int]
+         * team_scores [int[2]]
+         * 
+         * Current Round Object
+         * trump[enum]
+         * phase[enum]
+         * hands[int[4]]
+         * dealer_seat[int]
+         * leader_seat[int]
+         * meld_score[int[2]]
+         * trickscore[int[2]]
+         * bids[int[4]]
+         * 
+         */
+
+        /*
+         * Notes:
+         * add Rules object to control each phase logic.
+         */
         private event Action<Events.GameEvent> GameEvents;
 
         private readonly Seat[] _players;

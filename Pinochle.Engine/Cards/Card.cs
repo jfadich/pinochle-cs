@@ -43,6 +43,7 @@ namespace JFadich.Pinochle.Engine.Cards
             Suit    = 0b00_11_0000,
             Color   = 0b00_01_0000
         };
+
         public byte Value { get; }
 
         public Card(byte value)
@@ -52,7 +53,12 @@ namespace JFadich.Pinochle.Engine.Cards
 
         public Card(Ranks rank, Suits suit)
         {
-            Value = (byte)((int)rank + (int)suit);
+            Value = MakeValue(rank, suit);
+        }
+
+        public static byte MakeValue(Ranks rank, Suits suit)
+        {
+            return (byte)((byte)rank + (byte)suit);
         }
 
         public Ranks getRank()

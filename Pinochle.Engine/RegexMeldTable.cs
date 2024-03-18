@@ -1,19 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Text;
 using System.Text.RegularExpressions;
 using JFadich.Pinochle.Engine.Cards;
+using static JFadich.Pinochle.Engine.Cards.Card;
 
 namespace JFadich.Pinochle.Engine
 {
-    class RegexMeldTable
+    public class RegexMeldTable
     {
         public readonly List<Regex> AllMeld = new();
 
-        public RegexMeldTable()
+        public string pattern;
+
+        private PinochleCard.Suits Trump;
+
+        public RegexMeldTable(PinochleCard.Suits trump)
         {
-            List<Meld> meld = new List<Meld>
+            this.Trump = trump;
+            /*List<Meld> meld = new List<Meld>
             {
                 new Meld(Pinochle(), 4, 30, "Pinochle"),
                 new Meld(FourOfAKind(PinochleCard.Ranks.Jack), 4, 40, "Jacks"),
@@ -40,64 +47,85 @@ namespace JFadich.Pinochle.Engine
               //  {
                     meld.Add(new Meld(Marriage(suit), 2, 4, "Marriage"));
               //  }
+            } */
+
+            pattern = @$"(?<pinochle>{Pinochle()})|";
+
+            pattern += @$"(?<dix>{Dix(trump)})|";
+            pattern += @$"(?<run>{Run(trump)})|";
+
+
+            foreach (PinochleCard.Suits suit in Enum.GetValues(typeof(PinochleCard.Suits)))
+            {
+                if (suit != trump)
+                {
+                    pattern += @$"(?<marriage{suit}>{Marriage(suit)})|";
+                }
             }
 
-            foreach(var m in meld)
-            {
-                AllMeld.Add(new Regex(getPattern(m.Cards), RegexOptions.Compiled));
-            }
+            pattern += @$"(?<fourJacks>{FourOfAKind(PinochleCard.Ranks.Jack)})|";
+            pattern += @$"(?<fourQueens>{FourOfAKind(PinochleCard.Ranks.Queen)})|";
+            pattern += @$"(?<fourKings>{FourOfAKind(PinochleCard.Ranks.King)})|";
+            pattern += @$"(?<fourAces>{FourOfAKind(PinochleCard.Ranks.Ace)})";
         }
 
-        private string getPattern(IEnumerable<PinochleCard> cards)
+        private static string getPattern(IEnumerable<byte> cards)
         {
-            return string.Join(@"(\.[0-9]+)*\.", cards.Select(c => c.Value)) + "\\.";
+            return string.Join(@"(?'fill'(?:\.\d{1,2})*\.)+", cards);
         }
 
-        public static PinochleCard[] Pinochle()
+        public static string Pinochle()
         {
-            return new[] {
-                new PinochleCard(PinochleCard.Ranks.Jack, PinochleCard.Suits.Diamonds),
-                new PinochleCard(PinochleCard.Ranks.Queen, PinochleCard.Suits.Spades)
-            };
+            return getPattern(new[] {
+                PinochleCard.MakeValue(Card.Ranks.Jack, PinochleCard.Suits.Diamonds),
+                PinochleCard.MakeValue(Card.Ranks.Queen, PinochleCard.Suits.Spades)
+            });
         }
 
-        public static PinochleCard[] Run(PinochleCard.Suits suit)
+        public static string Run(PinochleCard.Suits suit)
         {
-            return new[]
+            byte[] cards = new[]
             {
-                new PinochleCard(PinochleCard.Ranks.Ace, suit),
-                new PinochleCard(PinochleCard.Ranks.Ten, suit),
-                new PinochleCard(PinochleCard.Ranks.King, suit),
-                new PinochleCard(PinochleCard.Ranks.Queen, suit),
-                new PinochleCard(PinochleCard.Ranks.Jack, suit)
+                PinochleCard.MakeValue(Card.Ranks.Ace, suit),
+                PinochleCard.MakeValue(Card.Ranks.Ten, suit),
+                PinochleCard.MakeValue(Card.Ranks.King, suit),
+                PinochleCard.MakeValue(Card.Ranks.Queen, suit),
+                PinochleCard.MakeValue(Card.Ranks.Jack, suit)
             };
-        }
-        public static PinochleCard[] Marriage(PinochleCard.Suits suit)
-        {
-            return new[]
+
+            var patterns = new[]
             {
-                new PinochleCard(PinochleCard.Ranks.King, suit),
-                new PinochleCard(PinochleCard.Ranks.Queen, suit)
+                $@"{cards[0]}",
+                $@"{cards[1]}(?'fill'\.{cards[1]})?",
+                $@"{cards[2]}(?'extra'\.{cards[2]})?",
+                $@"{cards[3]}(?'extra'\.{cards[3]})?",
+                $@"{cards[4]}",
             };
+
+            return string.Join(@"\.", patterns);
         }
 
-        public static PinochleCard[] FourOfAKind(PinochleCard.Ranks rank)
+        public static string Marriage(PinochleCard.Suits suit)
         {
-            return new[]
-            {
-                new PinochleCard(rank, PinochleCard.Suits.Diamonds),
-                new PinochleCard(rank, PinochleCard.Suits.Spades),
-                new PinochleCard(rank, PinochleCard.Suits.Hearts),
-                new PinochleCard(rank, PinochleCard.Suits.Clubs)
-            };
+            return $@"{PinochleCard.MakeValue(Card.Ranks.King, suit)}\.{PinochleCard.MakeValue(Card.Ranks.Queen, suit)}";
         }
 
-        public static PinochleCard[] Dix(PinochleCard.Suits trump)
+        public static string FourOfAKind(PinochleCard.Ranks rank)
         {
-            return new[]
+            return getPattern(new[]
             {
-                new PinochleCard(PinochleCard.Ranks.Nine, trump),
-            };
+                PinochleCard.MakeValue((Ranks)rank, PinochleCard.Suits.Diamonds),
+                PinochleCard.MakeValue((Ranks)rank, PinochleCard.Suits.Spades),
+                PinochleCard.MakeValue((Ranks)rank, PinochleCard.Suits.Hearts),
+                PinochleCard.MakeValue((Ranks)rank, PinochleCard.Suits.Clubs)
+            });
+        }
+
+        public static string Dix(PinochleCard.Suits trump)
+        {
+            byte nineOfTrump = PinochleCard.MakeValue(Card.Ranks.Nine, trump);
+
+            return @$"{nineOfTrump}(\.{nineOfTrump})?";
         }
     }
 }
